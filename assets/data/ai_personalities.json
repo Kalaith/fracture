@@ -1,0 +1,359 @@
+{
+  "personalities": [
+    {
+      "id": "aggressive",
+      "name": "Aggressive",
+      "description": "Constantly pressures objectives and takes calculated risks. Favors early aggression.",
+      "behavior_weights": {
+        "expand_territory": 0.9,
+        "defend_position": 0.2,
+        "build_economy": 0.3,
+        "harass_enemy": 0.9,
+        "consolidate_forces": 0.2,
+        "capture_objectives": 0.8,
+        "assist_ally": 0.4
+      },
+      "doctrine_preferences": {
+        "offensive": 0.9,
+        "defensive": 0.1,
+        "economic": 0.3,
+        "special": 0.5
+      },
+      "decision_timing": {
+        "reaction_delay": 0.3,
+        "planning_lookahead": 5.0,
+        "adaptation_speed": 0.9,
+        "decision_confidence": 0.8
+      },
+      "combat_behavior": {
+        "risk_tolerance": 0.85,
+        "preferred_engagement_range": "close",
+        "retreat_health_threshold": 0.15,
+        "reinforcement_timing": "proactive"
+      },
+      "preferred_unit_types": [
+        "infantry_light",
+        "armor_light",
+        "drone_gunship"
+      ],
+      "spawn_frequency": 0.9,
+      "ability_usage": {
+        "frequency": 0.8,
+        "timing": "offensive",
+        "coordination": 0.5
+      }
+    },
+    {
+      "id": "defensive",
+      "name": "Defensive",
+      "description": "Prioritizes holding territory and fortifying positions. Reactive rather than proactive.",
+      "behavior_weights": {
+        "expand_territory": 0.3,
+        "defend_position": 0.9,
+        "build_economy": 0.7,
+        "harass_enemy": 0.2,
+        "consolidate_forces": 0.8,
+        "capture_objectives": 0.5,
+        "assist_ally": 0.7
+      },
+      "doctrine_preferences": {
+        "offensive": 0.2,
+        "defensive": 0.9,
+        "economic": 0.7,
+        "special": 0.3
+      },
+      "decision_timing": {
+        "reaction_delay": 0.8,
+        "planning_lookahead": 8.0,
+        "adaptation_speed": 0.5,
+        "decision_confidence": 0.9
+      },
+      "combat_behavior": {
+        "risk_tolerance": 0.3,
+        "preferred_engagement_range": "long",
+        "retreat_health_threshold": 0.5,
+        "reinforcement_timing": "reactive"
+      },
+      "preferred_unit_types": [
+        "infantry_heavy",
+        "armor_heavy",
+        "artillery_light",
+        "specialist_anti_air"
+      ],
+      "spawn_frequency": 0.5,
+      "ability_usage": {
+        "frequency": 0.5,
+        "timing": "defensive",
+        "coordination": 0.8
+      }
+    },
+    {
+      "id": "balanced",
+      "name": "Balanced",
+      "description": "Adapts to battlefield conditions. No strong preferences, reacts to opportunities.",
+      "behavior_weights": {
+        "expand_territory": 0.6,
+        "defend_position": 0.6,
+        "build_economy": 0.6,
+        "harass_enemy": 0.5,
+        "consolidate_forces": 0.5,
+        "capture_objectives": 0.7,
+        "assist_ally": 0.6
+      },
+      "doctrine_preferences": {
+        "offensive": 0.5,
+        "defensive": 0.5,
+        "economic": 0.6,
+        "special": 0.5
+      },
+      "decision_timing": {
+        "reaction_delay": 0.5,
+        "planning_lookahead": 6.0,
+        "adaptation_speed": 0.7,
+        "decision_confidence": 0.6
+      },
+      "combat_behavior": {
+        "risk_tolerance": 0.5,
+        "preferred_engagement_range": "medium",
+        "retreat_health_threshold": 0.3,
+        "reinforcement_timing": "balanced"
+      },
+      "preferred_unit_types": [
+        "infantry_light",
+        "infantry_heavy",
+        "armor_light",
+        "drone_scout"
+      ],
+      "spawn_frequency": 0.6,
+      "ability_usage": {
+        "frequency": 0.6,
+        "timing": "opportunistic",
+        "coordination": 0.6
+      }
+    },
+    {
+      "id": "opportunistic",
+      "name": "Opportunistic",
+      "description": "Waits for enemy mistakes and exploits weaknesses. Patient but decisive.",
+      "behavior_weights": {
+        "expand_territory": 0.4,
+        "defend_position": 0.5,
+        "build_economy": 0.8,
+        "harass_enemy": 0.6,
+        "consolidate_forces": 0.7,
+        "capture_objectives": 0.6,
+        "assist_ally": 0.3
+      },
+      "doctrine_preferences": {
+        "offensive": 0.4,
+        "defensive": 0.6,
+        "economic": 0.8,
+        "special": 0.7
+      },
+      "decision_timing": {
+        "reaction_delay": 1.0,
+        "planning_lookahead": 10.0,
+        "adaptation_speed": 0.4,
+        "decision_confidence": 0.7
+      },
+      "combat_behavior": {
+        "risk_tolerance": 0.4,
+        "preferred_engagement_range": "optimal",
+        "retreat_health_threshold": 0.4,
+        "reinforcement_timing": "opportunistic"
+      },
+      "preferred_unit_types": [
+        "drone_scout",
+        "specialist_anti_armor",
+        "artillery_light",
+        "support_engineer"
+      ],
+      "spawn_frequency": 0.5,
+      "ability_usage": {
+        "frequency": 0.7,
+        "timing": "perfect_moment",
+        "coordination": 0.9
+      }
+    },
+    {
+      "id": "reckless",
+      "name": "Reckless",
+      "description": "All-in aggression with little regard for losses. High pressure, high casualties.",
+      "behavior_weights": {
+        "expand_territory": 1.0,
+        "defend_position": 0.1,
+        "build_economy": 0.2,
+        "harass_enemy": 1.0,
+        "consolidate_forces": 0.1,
+        "capture_objectives": 1.0,
+        "assist_ally": 0.2
+      },
+      "doctrine_preferences": {
+        "offensive": 1.0,
+        "defensive": 0.0,
+        "economic": 0.3,
+        "special": 0.8
+      },
+      "decision_timing": {
+        "reaction_delay": 0.1,
+        "planning_lookahead": 3.0,
+        "adaptation_speed": 1.0,
+        "decision_confidence": 1.0
+      },
+      "combat_behavior": {
+        "risk_tolerance": 1.0,
+        "preferred_engagement_range": "melee",
+        "retreat_health_threshold": 0.0,
+        "reinforcement_timing": "constant"
+      },
+      "preferred_unit_types": [
+        "infantry_light",
+        "armor_light",
+        "drone_gunship"
+      ],
+      "spawn_frequency": 1.0,
+      "ability_usage": {
+        "frequency": 1.0,
+        "timing": "always",
+        "coordination": 0.2
+      }
+    },
+    {
+      "id": "turtle",
+      "name": "Turtle",
+      "description": "Extreme defensive focus. Builds up economy and fortifications before any aggression.",
+      "behavior_weights": {
+        "expand_territory": 0.1,
+        "defend_position": 1.0,
+        "build_economy": 1.0,
+        "harass_enemy": 0.1,
+        "consolidate_forces": 1.0,
+        "capture_objectives": 0.3,
+        "assist_ally": 0.9
+      },
+      "doctrine_preferences": {
+        "offensive": 0.1,
+        "defensive": 1.0,
+        "economic": 1.0,
+        "special": 0.2
+      },
+      "decision_timing": {
+        "reaction_delay": 1.5,
+        "planning_lookahead": 15.0,
+        "adaptation_speed": 0.3,
+        "decision_confidence": 0.9
+      },
+      "combat_behavior": {
+        "risk_tolerance": 0.1,
+        "preferred_engagement_range": "long",
+        "retreat_health_threshold": 0.7,
+        "reinforcement_timing": "defensive"
+      },
+      "preferred_unit_types": [
+        "infantry_heavy",
+        "armor_heavy",
+        "artillery_light",
+        "specialist_anti_air",
+        "support_engineer"
+      ],
+      "spawn_frequency": 0.3,
+      "ability_usage": {
+        "frequency": 0.3,
+        "timing": "defensive",
+        "coordination": 1.0
+      }
+    },
+    {
+      "id": "harasser",
+      "name": "Harasser",
+      "description": "Focuses on disruption and sabotage. Avoids direct confrontation.",
+      "behavior_weights": {
+        "expand_territory": 0.5,
+        "defend_position": 0.3,
+        "build_economy": 0.5,
+        "harass_enemy": 1.0,
+        "consolidate_forces": 0.2,
+        "capture_objectives": 0.4,
+        "assist_ally": 0.4
+      },
+      "doctrine_preferences": {
+        "offensive": 0.6,
+        "defensive": 0.2,
+        "economic": 0.4,
+        "special": 1.0
+      },
+      "decision_timing": {
+        "reaction_delay": 0.2,
+        "planning_lookahead": 4.0,
+        "adaptation_speed": 0.9,
+        "decision_confidence": 0.7
+      },
+      "combat_behavior": {
+        "risk_tolerance": 0.4,
+        "preferred_engagement_range": "hit_and_run",
+        "retreat_health_threshold": 0.6,
+        "reinforcement_timing": "guerrilla"
+      },
+      "preferred_unit_types": [
+        "drone_scout",
+        "drone_gunship",
+        "infantry_light",
+        "armor_light"
+      ],
+      "spawn_frequency": 0.7,
+      "ability_usage": {
+        "frequency": 0.9,
+        "timing": "disruptive",
+        "coordination": 0.4
+      }
+    },
+    {
+      "id": "economist",
+      "name": "Economist",
+      "description": "Maximizes supply efficiency and economy. Late-game focused strategy.",
+      "behavior_weights": {
+        "expand_territory": 0.6,
+        "defend_position": 0.7,
+        "build_economy": 1.0,
+        "harass_enemy": 0.3,
+        "consolidate_forces": 0.8,
+        "capture_objectives": 0.5,
+        "assist_ally": 0.8
+      },
+      "doctrine_preferences": {
+        "offensive": 0.3,
+        "defensive": 0.7,
+        "economic": 1.0,
+        "special": 0.4
+      },
+      "decision_timing": {
+        "reaction_delay": 0.7,
+        "planning_lookahead": 12.0,
+        "adaptation_speed": 0.5,
+        "decision_confidence": 0.8
+      },
+      "combat_behavior": {
+        "risk_tolerance": 0.4,
+        "preferred_engagement_range": "optimal",
+        "retreat_health_threshold": 0.4,
+        "reinforcement_timing": "efficient"
+      },
+      "preferred_unit_types": [
+        "support_engineer",
+        "infantry_heavy",
+        "artillery_light"
+      ],
+      "spawn_frequency": 0.6,
+      "ability_usage": {
+        "frequency": 0.5,
+        "timing": "economic",
+        "coordination": 0.7
+      }
+    }
+  ],
+  "_metadata": {
+    "version": "1.0",
+    "last_updated": "2026-01-03",
+    "ai_notes": "Personalities should be distinct and recognizable to players. Each should have clear strengths and weaknesses. Mix personalities across enemy factions for varied gameplay."
+  }
+}

@@ -1,0 +1,667 @@
+{
+  "maps": [
+    {
+      "id": "contested_valley",
+      "name": "Contested Valley",
+      "description": "Three-way conflict over a central valley with strategic chokepoints",
+      "difficulty": "medium",
+      "recommended_players": "1v2_ai",
+      "dimensions": {
+        "width": 2400,
+        "height": 1800
+      },
+      "factions": [
+        {
+          "faction_id": 1,
+          "name": "Player Faction",
+          "spawn_position": {"x": 200, "y": 900},
+          "spawn_hub_position": {"x": 150, "y": 900},
+          "starting_sectors": ["sector_p1", "sector_p2"],
+          "color": "#4488FF"
+        },
+        {
+          "faction_id": 2,
+          "name": "Red Coalition",
+          "spawn_position": {"x": 2200, "y": 900},
+          "spawn_hub_position": {"x": 2250, "y": 900},
+          "starting_sectors": ["sector_e1", "sector_e2"],
+          "color": "#FF4444"
+        },
+        {
+          "faction_id": 3,
+          "name": "Green Alliance",
+          "spawn_position": {"x": 1200, "y": 200},
+          "spawn_hub_position": {"x": 1200, "y": 150},
+          "starting_sectors": ["sector_n1", "sector_n2"],
+          "color": "#44FF88"
+        }
+      ],
+      "sectors": [
+        {
+          "id": "sector_p1",
+          "name": "West Base",
+          "position": {"x": 350, "y": 750},
+          "radius": 150,
+          "type": "starting",
+          "connections": ["sector_p2", "sector_west"],
+          "strategic_value": 2,
+          "terrain_type": "fortified",
+          "fortification_slots": 3,
+          "initial_control": 1
+        },
+        {
+          "id": "sector_p2",
+          "name": "West Forward",
+          "position": {"x": 350, "y": 1050},
+          "radius": 130,
+          "type": "normal",
+          "connections": ["sector_p1", "sector_south"],
+          "strategic_value": 2,
+          "terrain_type": "open",
+          "fortification_slots": 2,
+          "initial_control": 1
+        },
+        {
+          "id": "sector_e1",
+          "name": "East Base",
+          "position": {"x": 2050, "y": 750},
+          "radius": 150,
+          "type": "starting",
+          "connections": ["sector_e2", "sector_east"],
+          "strategic_value": 2,
+          "terrain_type": "fortified",
+          "fortification_slots": 3,
+          "initial_control": 2
+        },
+        {
+          "id": "sector_e2",
+          "name": "East Forward",
+          "position": {"x": 2050, "y": 1050},
+          "radius": 130,
+          "type": "normal",
+          "connections": ["sector_e1", "sector_south"],
+          "strategic_value": 2,
+          "terrain_type": "open",
+          "fortification_slots": 2,
+          "initial_control": 2
+        },
+        {
+          "id": "sector_n1",
+          "name": "North Base",
+          "position": {"x": 1050, "y": 350},
+          "radius": 150,
+          "type": "starting",
+          "connections": ["sector_n2", "sector_north"],
+          "strategic_value": 2,
+          "terrain_type": "fortified",
+          "fortification_slots": 3,
+          "initial_control": 3
+        },
+        {
+          "id": "sector_n2",
+          "name": "North Forward",
+          "position": {"x": 1350, "y": 350},
+          "radius": 130,
+          "type": "normal",
+          "connections": ["sector_n1", "sector_north"],
+          "strategic_value": 2,
+          "terrain_type": "open",
+          "fortification_slots": 2,
+          "initial_control": 3
+        },
+        {
+          "id": "sector_west",
+          "name": "West Approach",
+          "position": {"x": 650, "y": 750},
+          "radius": 140,
+          "type": "chokepoint",
+          "connections": ["sector_p1", "sector_central"],
+          "strategic_value": 4,
+          "terrain_type": "rocky",
+          "fortification_slots": 4,
+          "initial_control": null
+        },
+        {
+          "id": "sector_east",
+          "name": "East Approach",
+          "position": {"x": 1750, "y": 750},
+          "radius": 140,
+          "type": "chokepoint",
+          "connections": ["sector_e1", "sector_central"],
+          "strategic_value": 4,
+          "terrain_type": "rocky",
+          "fortification_slots": 4,
+          "initial_control": null
+        },
+        {
+          "id": "sector_north",
+          "name": "North Approach",
+          "position": {"x": 1200, "y": 600},
+          "radius": 140,
+          "type": "chokepoint",
+          "connections": ["sector_n1", "sector_n2", "sector_central"],
+          "strategic_value": 4,
+          "terrain_type": "rocky",
+          "fortification_slots": 4,
+          "initial_control": null
+        },
+        {
+          "id": "sector_south",
+          "name": "South Contested",
+          "position": {"x": 1200, "y": 1200},
+          "radius": 140,
+          "type": "resource",
+          "connections": ["sector_p2", "sector_e2", "sector_central"],
+          "strategic_value": 5,
+          "terrain_type": "open",
+          "fortification_slots": 2,
+          "resource_bonus": {
+            "type": "supply_generation",
+            "value": 5
+          },
+          "initial_control": null
+        },
+        {
+          "id": "sector_central",
+          "name": "Central Valley",
+          "position": {"x": 1200, "y": 900},
+          "radius": 180,
+          "type": "victory_point",
+          "connections": ["sector_west", "sector_east", "sector_north", "sector_south"],
+          "strategic_value": 10,
+          "terrain_type": "open",
+          "fortification_slots": 2,
+          "initial_control": null
+        }
+      ],
+      "objectives": [
+        {
+          "type": "control_sector",
+          "sector_id": "sector_central",
+          "duration": 60.0,
+          "victory_points": 100,
+          "description": "Control Central Valley for 60 seconds"
+        },
+        {
+          "type": "control_sectors",
+          "required_count": 7,
+          "duration": 45.0,
+          "victory_points": 100,
+          "description": "Control 7 sectors simultaneously for 45 seconds"
+        }
+      ],
+      "environmental_effects": [],
+      "recommended_ai_setup": [
+        {
+          "faction_id": 2,
+          "commander_type": "vanguard",
+          "personality": "aggressive",
+          "difficulty": 0.8
+        },
+        {
+          "faction_id": 3,
+          "commander_type": "control",
+          "personality": "defensive",
+          "difficulty": 0.7
+        }
+      ]
+    },
+    {
+      "id": "asymmetric_highlands",
+      "name": "Asymmetric Highlands",
+      "description": "Uneven starting positions create unique strategic challenges for each faction",
+      "difficulty": "hard",
+      "recommended_players": "1v2_ai",
+      "dimensions": {
+        "width": 2600,
+        "height": 2000
+      },
+      "factions": [
+        {
+          "faction_id": 1,
+          "name": "Player Faction",
+          "spawn_position": {"x": 1300, "y": 1800},
+          "spawn_hub_position": {"x": 1300, "y": 1850},
+          "starting_sectors": ["sector_south_1", "sector_south_2", "sector_south_3"],
+          "color": "#4488FF"
+        },
+        {
+          "faction_id": 2,
+          "name": "Red Coalition",
+          "spawn_position": {"x": 300, "y": 300},
+          "spawn_hub_position": {"x": 250, "y": 250},
+          "starting_sectors": ["sector_nw_1", "sector_nw_2"],
+          "color": "#FF4444"
+        },
+        {
+          "faction_id": 3,
+          "name": "Green Alliance",
+          "spawn_position": {"x": 2300, "y": 300},
+          "spawn_hub_position": {"x": 2350, "y": 250},
+          "starting_sectors": ["sector_ne_1", "sector_ne_2"],
+          "color": "#44FF88"
+        }
+      ],
+      "sectors": [
+        {
+          "id": "sector_south_1",
+          "name": "South Main Base",
+          "position": {"x": 1100, "y": 1650},
+          "radius": 160,
+          "type": "starting",
+          "connections": ["sector_south_2", "sector_sw_bridge"],
+          "strategic_value": 3,
+          "terrain_type": "fortified",
+          "fortification_slots": 4,
+          "initial_control": 1
+        },
+        {
+          "id": "sector_south_2",
+          "name": "South Secondary",
+          "position": {"x": 1500, "y": 1650},
+          "radius": 160,
+          "type": "starting",
+          "connections": ["sector_south_1", "sector_se_bridge"],
+          "strategic_value": 3,
+          "terrain_type": "fortified",
+          "fortification_slots": 4,
+          "initial_control": 1
+        },
+        {
+          "id": "sector_south_3",
+          "name": "South Forward",
+          "position": {"x": 1300, "y": 1400},
+          "radius": 140,
+          "type": "starting",
+          "connections": ["sector_south_1", "sector_south_2", "sector_central_contested"],
+          "strategic_value": 3,
+          "terrain_type": "open",
+          "fortification_slots": 3,
+          "initial_control": 1
+        },
+        {
+          "id": "sector_nw_1",
+          "name": "Northwest Base",
+          "position": {"x": 400, "y": 400},
+          "radius": 150,
+          "type": "starting",
+          "connections": ["sector_nw_2", "sector_nw_resource"],
+          "strategic_value": 2,
+          "terrain_type": "fortified",
+          "fortification_slots": 3,
+          "initial_control": 2
+        },
+        {
+          "id": "sector_nw_2",
+          "name": "Northwest Forward",
+          "position": {"x": 600, "y": 600},
+          "radius": 130,
+          "type": "normal",
+          "connections": ["sector_nw_1", "sector_sw_bridge"],
+          "strategic_value": 2,
+          "terrain_type": "open",
+          "fortification_slots": 2,
+          "initial_control": 2
+        },
+        {
+          "id": "sector_ne_1",
+          "name": "Northeast Base",
+          "position": {"x": 2200, "y": 400},
+          "radius": 150,
+          "type": "starting",
+          "connections": ["sector_ne_2", "sector_ne_resource"],
+          "strategic_value": 2,
+          "terrain_type": "fortified",
+          "fortification_slots": 3,
+          "initial_control": 3
+        },
+        {
+          "id": "sector_ne_2",
+          "name": "Northeast Forward",
+          "position": {"x": 2000, "y": 600},
+          "radius": 130,
+          "type": "normal",
+          "connections": ["sector_ne_1", "sector_se_bridge"],
+          "strategic_value": 2,
+          "terrain_type": "open",
+          "fortification_slots": 2,
+          "initial_control": 3
+        },
+        {
+          "id": "sector_nw_resource",
+          "name": "Western Mines",
+          "position": {"x": 400, "y": 800},
+          "radius": 120,
+          "type": "resource",
+          "connections": ["sector_nw_1", "sector_sw_bridge"],
+          "strategic_value": 6,
+          "terrain_type": "industrial",
+          "fortification_slots": 2,
+          "resource_bonus": {
+            "type": "supply_generation",
+            "value": 10
+          },
+          "initial_control": null
+        },
+        {
+          "id": "sector_ne_resource",
+          "name": "Eastern Refineries",
+          "position": {"x": 2200, "y": 800},
+          "radius": 120,
+          "type": "resource",
+          "connections": ["sector_ne_1", "sector_se_bridge"],
+          "strategic_value": 6,
+          "terrain_type": "industrial",
+          "fortification_slots": 2,
+          "resource_bonus": {
+            "type": "supply_generation",
+            "value": 10
+          },
+          "initial_control": null
+        },
+        {
+          "id": "sector_sw_bridge",
+          "name": "Southwest Bridge",
+          "position": {"x": 800, "y": 1200},
+          "radius": 130,
+          "type": "chokepoint",
+          "connections": ["sector_nw_2", "sector_nw_resource", "sector_south_1", "sector_central_contested"],
+          "strategic_value": 7,
+          "terrain_type": "bridge",
+          "fortification_slots": 5,
+          "initial_control": null
+        },
+        {
+          "id": "sector_se_bridge",
+          "name": "Southeast Bridge",
+          "position": {"x": 1800, "y": 1200},
+          "radius": 130,
+          "type": "chokepoint",
+          "connections": ["sector_ne_2", "sector_ne_resource", "sector_south_2", "sector_central_contested"],
+          "strategic_value": 7,
+          "terrain_type": "bridge",
+          "fortification_slots": 5,
+          "initial_control": null
+        },
+        {
+          "id": "sector_central_contested",
+          "name": "Highland Peak",
+          "position": {"x": 1300, "y": 1000},
+          "radius": 200,
+          "type": "victory_point",
+          "connections": ["sector_south_3", "sector_sw_bridge", "sector_se_bridge", "sector_central_vantage"],
+          "strategic_value": 10,
+          "terrain_type": "elevated",
+          "fortification_slots": 3,
+          "terrain_bonus": {
+            "type": "range_bonus",
+            "value": 1.2
+          },
+          "initial_control": null
+        },
+        {
+          "id": "sector_central_vantage",
+          "name": "Central Vantage",
+          "position": {"x": 1300, "y": 700},
+          "radius": 150,
+          "type": "strategic",
+          "connections": ["sector_central_contested"],
+          "strategic_value": 8,
+          "terrain_type": "elevated",
+          "fortification_slots": 4,
+          "special_ability": {
+            "type": "vision_bonus",
+            "value": 1.5
+          },
+          "initial_control": null
+        }
+      ],
+      "objectives": [
+        {
+          "type": "control_sector",
+          "sector_id": "sector_central_contested",
+          "duration": 90.0,
+          "victory_points": 100,
+          "description": "Control Highland Peak for 90 seconds"
+        },
+        {
+          "type": "control_resources",
+          "required_count": 2,
+          "duration": 60.0,
+          "victory_points": 100,
+          "description": "Control both resource sectors for 60 seconds"
+        }
+      ],
+      "environmental_effects": [
+        {
+          "type": "elevated_terrain",
+          "sectors": ["sector_central_contested", "sector_central_vantage"],
+          "effect": {
+            "range_multiplier": 1.2,
+            "vision_multiplier": 1.5
+          }
+        }
+      ],
+      "recommended_ai_setup": [
+        {
+          "faction_id": 2,
+          "commander_type": "engineer",
+          "personality": "economist",
+          "difficulty": 0.7
+        },
+        {
+          "faction_id": 3,
+          "commander_type": "disruptor",
+          "personality": "harasser",
+          "difficulty": 0.8
+        }
+      ]
+    },
+    {
+      "id": "chokepoint_gauntlet",
+      "name": "Chokepoint Gauntlet",
+      "description": "Linear progression through heavily fortified positions. Breakthrough focused.",
+      "difficulty": "hard",
+      "recommended_players": "1v2_ai",
+      "dimensions": {
+        "width": 3000,
+        "height": 1200
+      },
+      "factions": [
+        {
+          "faction_id": 1,
+          "name": "Player Faction",
+          "spawn_position": {"x": 200, "y": 600},
+          "spawn_hub_position": {"x": 150, "y": 600},
+          "starting_sectors": ["sector_west_base"],
+          "color": "#4488FF"
+        },
+        {
+          "faction_id": 2,
+          "name": "Red Coalition",
+          "spawn_position": {"x": 2800, "y": 400},
+          "spawn_hub_position": {"x": 2850, "y": 400},
+          "starting_sectors": ["sector_east_north"],
+          "color": "#FF4444"
+        },
+        {
+          "faction_id": 3,
+          "name": "Green Alliance",
+          "spawn_position": {"x": 2800, "y": 800},
+          "spawn_hub_position": {"x": 2850, "y": 800},
+          "starting_sectors": ["sector_east_south"],
+          "color": "#44FF88"
+        }
+      ],
+      "sectors": [
+        {
+          "id": "sector_west_base",
+          "name": "Western Fortress",
+          "position": {"x": 400, "y": 600},
+          "radius": 160,
+          "type": "starting",
+          "connections": ["sector_choke_1"],
+          "strategic_value": 3,
+          "terrain_type": "fortified",
+          "fortification_slots": 5,
+          "initial_control": 1
+        },
+        {
+          "id": "sector_choke_1",
+          "name": "First Gate",
+          "position": {"x": 800, "y": 600},
+          "radius": 120,
+          "type": "chokepoint",
+          "connections": ["sector_west_base", "sector_mid_1"],
+          "strategic_value": 6,
+          "terrain_type": "fortified",
+          "fortification_slots": 6,
+          "initial_control": null
+        },
+        {
+          "id": "sector_mid_1",
+          "name": "Midfield North",
+          "position": {"x": 1200, "y": 400},
+          "radius": 140,
+          "type": "normal",
+          "connections": ["sector_choke_1", "sector_choke_2"],
+          "strategic_value": 4,
+          "terrain_type": "open",
+          "fortification_slots": 2,
+          "initial_control": null
+        },
+        {
+          "id": "sector_mid_2",
+          "name": "Midfield South",
+          "position": {"x": 1200, "y": 800},
+          "radius": 140,
+          "type": "normal",
+          "connections": ["sector_choke_1", "sector_choke_2"],
+          "strategic_value": 4,
+          "terrain_type": "open",
+          "fortification_slots": 2,
+          "initial_control": null
+        },
+        {
+          "id": "sector_choke_2",
+          "name": "Central Bastion",
+          "position": {"x": 1500, "y": 600},
+          "radius": 150,
+          "type": "victory_point",
+          "connections": ["sector_mid_1", "sector_mid_2", "sector_mid_3", "sector_mid_4"],
+          "strategic_value": 10,
+          "terrain_type": "fortified",
+          "fortification_slots": 8,
+          "initial_control": null
+        },
+        {
+          "id": "sector_mid_3",
+          "name": "Eastern Approach North",
+          "position": {"x": 1900, "y": 400},
+          "radius": 140,
+          "type": "normal",
+          "connections": ["sector_choke_2", "sector_choke_3_n"],
+          "strategic_value": 4,
+          "terrain_type": "open",
+          "fortification_slots": 2,
+          "initial_control": null
+        },
+        {
+          "id": "sector_mid_4",
+          "name": "Eastern Approach South",
+          "position": {"x": 1900, "y": 800},
+          "radius": 140,
+          "type": "normal",
+          "connections": ["sector_choke_2", "sector_choke_3_s"],
+          "strategic_value": 4,
+          "terrain_type": "open",
+          "fortification_slots": 2,
+          "initial_control": null
+        },
+        {
+          "id": "sector_choke_3_n",
+          "name": "Final Gate North",
+          "position": {"x": 2300, "y": 400},
+          "radius": 130,
+          "type": "chokepoint",
+          "connections": ["sector_mid_3", "sector_east_north"],
+          "strategic_value": 7,
+          "terrain_type": "fortified",
+          "fortification_slots": 6,
+          "initial_control": null
+        },
+        {
+          "id": "sector_choke_3_s",
+          "name": "Final Gate South",
+          "position": {"x": 2300, "y": 800},
+          "radius": 130,
+          "type": "chokepoint",
+          "connections": ["sector_mid_4", "sector_east_south"],
+          "strategic_value": 7,
+          "terrain_type": "fortified",
+          "fortification_slots": 6,
+          "initial_control": null
+        },
+        {
+          "id": "sector_east_north",
+          "name": "Northern Stronghold",
+          "position": {"x": 2600, "y": 400},
+          "radius": 160,
+          "type": "starting",
+          "connections": ["sector_choke_3_n"],
+          "strategic_value": 3,
+          "terrain_type": "fortified",
+          "fortification_slots": 5,
+          "initial_control": 2
+        },
+        {
+          "id": "sector_east_south",
+          "name": "Southern Stronghold",
+          "position": {"x": 2600, "y": 800},
+          "radius": 160,
+          "type": "starting",
+          "connections": ["sector_choke_3_s"],
+          "strategic_value": 3,
+          "terrain_type": "fortified",
+          "fortification_slots": 5,
+          "initial_control": 3
+        }
+      ],
+      "objectives": [
+        {
+          "type": "control_sector",
+          "sector_id": "sector_choke_2",
+          "duration": 120.0,
+          "victory_points": 100,
+          "description": "Control Central Bastion for 120 seconds"
+        },
+        {
+          "type": "destroy_hubs",
+          "required_count": 2,
+          "victory_points": 100,
+          "description": "Destroy both enemy supply hubs"
+        }
+      ],
+      "environmental_effects": [],
+      "recommended_ai_setup": [
+        {
+          "faction_id": 2,
+          "commander_type": "control",
+          "personality": "turtle",
+          "difficulty": 0.9
+        },
+        {
+          "faction_id": 3,
+          "commander_type": "vanguard",
+          "personality": "aggressive",
+          "difficulty": 0.9
+        }
+      ]
+    }
+  ],
+  "_metadata": {
+    "version": "1.0",
+    "last_updated": "2026-01-03",
+    "map_design_notes": "Each map should create distinct strategic scenarios. Contested Valley is balanced 3-way, Asymmetric Highlands favors player with defensive position, Chokepoint Gauntlet tests breakthrough ability."
+  }
+}
