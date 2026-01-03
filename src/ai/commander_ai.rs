@@ -131,10 +131,15 @@ impl CommanderAI {
         }
 
         // Strategic decision based on personality
-        if self.personality.should_perform("expand") && analysis.should_expand(self.faction_id) {
+        // Strategic decision based on personality
+        // Use deterministic checks for high-priority behaviors to prevent jitter
+        // If the situation calls for it AND the personality supports it strongly, do it reliably.
+        if analysis.should_expand(self.faction_id)
+            && self.personality.behavior_weights.expand_territory > 0.6
+        {
             SquadOrder::Advance
-        } else if self.personality.should_perform("defend")
-            && analysis.should_defend(self.faction_id)
+        } else if analysis.should_defend(self.faction_id)
+            && self.personality.behavior_weights.defend_position > 0.6
         {
             SquadOrder::Fortify
         } else if self.personality.should_perform("harass") {
@@ -175,12 +180,16 @@ impl CommanderAI {
         // In full implementation, would use preferred_unit_types from personality
         let choice = rand::random::<f32>();
 
-        if choice < 0.4 {
-            UnitType::Infantry
-        } else if choice < 0.7 {
-            UnitType::Heavy
+        if choice < 0.3 {
+            UnitType::InfantryLight
+        } else if choice < 0.5 {
+            UnitType::InfantryHeavy
+        } else if choice < 0.65 {
+            UnitType::ArmorLight
+        } else if choice < 0.75 {
+            UnitType::DroneScout
         } else if choice < 0.85 {
-            UnitType::Drone
+            UnitType::DroneGunship
         } else {
             UnitType::Artillery
         }

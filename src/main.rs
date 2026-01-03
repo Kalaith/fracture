@@ -90,49 +90,52 @@ async fn main() {
 
 /// Spawn initial units for all three factions to test the simulation
 fn spawn_initial_units(game: &mut GameState) {
-    use types::{FactionId, SquadOrder, UnitType};
-
-    // Faction 1 initial forces (Player)
-    let _ = game.spawn_squad(
-        FactionId::Faction1,
-        UnitType::Infantry,
-        3,
-        SquadOrder::Advance,
-    );
-    let _ = game.spawn_squad(FactionId::Faction1, UnitType::Heavy, 2, SquadOrder::Hold);
-
-    // Faction 2 initial forces (AI - Aggressive)
-    let _ = game.spawn_squad(
-        FactionId::Faction2,
-        UnitType::Infantry,
-        3,
-        SquadOrder::Advance,
-    );
-    let _ = game.spawn_squad(FactionId::Faction2, UnitType::Drone, 2, SquadOrder::Skirmish);
-
-    // Faction 3 initial forces (AI - Defensive)
-    let _ = game.spawn_squad(
-        FactionId::Faction3,
-        UnitType::Heavy,
-        3,
-        SquadOrder::Fortify,
-    );
-    let _ = game.spawn_squad(FactionId::Faction3, UnitType::Artillery, 1, SquadOrder::Hold);
-
-    // Set some initial doctrines
-    game.set_doctrine(
-        FactionId::Faction1,
-        0,
-        Some(types::Doctrine::RapidDeployment),
-    );
-    game.set_doctrine(
-        FactionId::Faction2,
-        0,
-        Some(types::Doctrine::AggressivePosture),
-    );
-    game.set_doctrine(
-        FactionId::Faction3,
-        0,
-        Some(types::Doctrine::EntrenchedAssault),
-    );
+    // Commented out - start with empty battlefield
+    // Players can spawn their own units
+    
+    // use types::{FactionId, SquadOrder, UnitType};
+    //
+    // // Faction 1 initial forces (Player)
+    // let _ = game.spawn_squad(
+    //     FactionId::Faction1,
+    //     UnitType::Infantry,
+    //     3,
+    //     SquadOrder::Advance,
+    // );
+    // let _ = game.spawn_squad(FactionId::Faction1, UnitType::Heavy, 2, SquadOrder::Hold);
+    //
+    // // Faction 2 initial forces (AI - Aggressive)
+    // let _ = game.spawn_squad(
+    //     FactionId::Faction2,
+    //     UnitType::Infantry,
+    //     3,
+    //     SquadOrder::Advance,
+    // );
+    // let _ = game.spawn_squad(FactionId::Faction2, UnitType::Drone, 2, SquadOrder::Skirmish);
+    //
+    // // Faction 3 initial forces (AI - Defensive)
+    // let _ = game.spawn_squad(
+    //     FactionId::Faction3,
+    //     UnitType::Heavy,
+    //     3,
+    //     SquadOrder::Fortify,
+    // );
+    // let _ = game.spawn_squad(FactionId::Faction3, UnitType::Artillery, 1, SquadOrder::Hold);
+    //
+    // // Set some initial doctrines
+    // game.set_doctrine(
+    //     FactionId::Faction1,
+    //     0,
+    //     Some(types::Doctrine::RapidDeployment),
+    // );
+    // game.set_doctrine(
+    //     FactionId::Faction2,
+    //     0,
+    //     Some(types::Doctrine::AggressivePosture),
+    // );
+    // game.set_doctrine(
+    //     FactionId::Faction3,
+    //     0,
+    //     Some(types::Doctrine::EntrenchedAssault),
+    // );
 }

@@ -89,19 +89,31 @@ pub fn render_ui(game: &GameState) {
 fn render_build_panel(game: &GameState, x: f32, y: f32, width: f32) {
     use crate::types::UnitType;
 
-    let height = 260.0;
+    let height = 450.0; // Increased height for more units
     macroquad_toolkit::ui::panel(x, y, width, height, Some("Build Units"));
 
     let mut y_offset = y + 35.0;
     let text_x = x + Config::UI_MARGIN;
     let can_spawn = game.can_spawn();
 
-    // Unit types with stats and costs
+    // Unit types organized by category with hotkeys
     let units = [
-        (UnitType::Infantry, "1", "Infantry"),
-        (UnitType::Heavy, "2", "Heavy"),
-        (UnitType::Drone, "3", "Drone"),
-        (UnitType::Artillery, "4", "Artillery"),
+        // Infantry
+        (UnitType::InfantryLight, "1", "Light Infantry"),
+        (UnitType::InfantryHeavy, "2", "Heavy Infantry"),
+        // Armor
+        (UnitType::ArmorLight, "3", "Light Tank"),
+        (UnitType::ArmorHeavy, "4", "Heavy Tank"),
+        // Artillery
+        (UnitType::Artillery, "5", "Artillery"),
+        // Drones
+        (UnitType::DroneScout, "6", "Scout Drone"),
+        (UnitType::DroneGunship, "7", "Gunship"),
+        // Support
+        (UnitType::Engineer, "8", "Engineer"),
+        // Specialist
+        (UnitType::AntiArmor, "9", "Anti-Armor"),
+        (UnitType::AntiAir, "0", "Anti-Air"),
     ];
 
     for (unit_type, key, name) in units {
@@ -110,7 +122,7 @@ fn render_build_panel(game: &GameState, x: f32, y: f32, width: f32) {
         let total_cost = cost_per_unit * squad_size;
         let damage = unit_type.attack_damage();
         let health = unit_type.max_health();
-        let range = unit_type.attack_range();
+        let armor = unit_type.armor();
 
         // Unit name and key
         let color = if can_spawn {
@@ -120,33 +132,40 @@ fn render_build_panel(game: &GameState, x: f32, y: f32, width: f32) {
         };
 
         draw_text(
-            &format!("[{}] {} Squad (x3)", key, name),
+            &format!("[{}] {} (x3)", key, name),
             text_x,
             y_offset,
-            18.0,
+            16.0,
             color,
         );
-        y_offset += 20.0;
+        y_offset += 18.0;
 
-        // Stats in smaller text - show total cost for squad
-        let stats_text = format!(
-            "  Cost: {} | HP: {:.0} | DMG: {:.0} | Range: {:.0}",
-            total_cost, health, damage, range
-        );
+        // Stats in smaller text - show cost, HP, armor, damage
+        let stats_text = if armor > 0.0 {
+            format!(
+                "  Cost:{} HP:{:.0} Armor:{:.0} DMG:{:.0}",
+                total_cost, health, armor, damage
+            )
+        } else {
+            format!(
+                "  Cost:{} HP:{:.0} DMG:{:.0}",
+                total_cost, health, damage
+            )
+        };
         draw_text(
             &stats_text,
             text_x,
             y_offset,
-            14.0,
+            12.0,
             dark::TEXT_DIM,
         );
-        y_offset += 25.0;
+        y_offset += 20.0;
     }
 
     // Instructions
     y_offset += 5.0;
     draw_text(
-        "Press 1-4 to spawn units",
+        "Press 1-0 to spawn units",
         text_x,
         y_offset,
         14.0,

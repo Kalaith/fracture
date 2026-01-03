@@ -23,6 +23,7 @@ pub struct GameState {
     pub combat_effects: Vec<CombatEffect>,
     pub paused: bool,
     pub game_speed: f32, // 1.0 = normal, 0.5 = slow, 2.0 = fast
+    pub markers: Vec<StrategicMarker>, // Player-placed attack/defend markers
 }
 
 impl GameState {
@@ -71,6 +72,7 @@ impl GameState {
             combat_effects: Vec::new(),
             paused: false,
             game_speed: 1.0,
+            markers: Vec::new(),
         }
     }
 
@@ -83,9 +85,10 @@ impl GameState {
         let dt = dt * self.game_speed;
 
         // Update timers
-        for commander in &mut self.commanders {
-            commander.spawn_timer += dt;
-        }
+        // Spawn timer no longer used - removed for instant spawning
+        // for commander in &mut self.commanders {
+        //     commander.spawn_timer += dt;
+        // }
         self.game_time += dt;
 
         // Update simulation (AI and movement)
@@ -185,15 +188,6 @@ impl GameState {
         count: u32,
         order: SquadOrder,
     ) -> Result<(), String> {
-        let commander = &self.commanders[owner.index()];
-
-        if commander.spawn_timer < Config::SPAWN_COOLDOWN {
-            return Err(format!(
-                "Spawn on cooldown: {:.1}s",
-                Config::SPAWN_COOLDOWN - commander.spawn_timer
-            ));
-        }
-
         let commander = self.get_commander(owner);
         let total_cost = unit_type.supply_cost() * count;
 
@@ -233,14 +227,9 @@ impl GameState {
         let commander = self.get_commander_mut(owner);
         commander.supply_used += actual_cost;
 
-        // Reset this commander's spawn timer
-        let spawn_mult = if commander.has_doctrine(Doctrine::RapidDeployment) {
-            Config::RAPID_SPAWN_MULT
-        } else {
-            1.0
-        };
-        commander.spawn_timer = -(Config::SPAWN_COOLDOWN * (1.0 - spawn_mult));
+        commander.spawn_timer = 0.0;
 
+        println!("✓ Spawned {} {:?} units for {:?}", count, unit_type, owner);
         Ok(())
     }
 
@@ -278,12 +267,38 @@ impl GameState {
     }
 
     pub fn can_spawn(&self) -> bool {
-        let local_commander = &self.commanders[self.local_faction.index()];
-        local_commander.spawn_timer >= Config::SPAWN_COOLDOWN
+        true
     }
 
     pub fn spawn_cooldown_percent(&self) -> f32 {
         let local_commander = &self.commanders[self.local_faction.index()];
         (local_commander.spawn_timer / Config::SPAWN_COOLDOWN).min(1.0)
+    }
+
+    /// Toggle marker on a sector (cycles: None -> Attack -> Defend -> None)
+    pub fn toggle_marker(&mut self, sector_id: u32) {
+        // Find existing marker for this sector and faction
+        if let Some(pos) = self.markers.iter().position(|m| m.sector_id == sector_id && m.faction == self.local_faction) {
+            let current_type = self.markers[pos].marker_type;
+            self.markers.remove(pos);
+            
+            // Cycle to next type
+            match current_type {
+                MarkerType::Attack => {
+                    self.markers.push(StrategicMarker::new(sector_id, MarkerType::Defend, self.local_faction));
+                }
+                MarkerType::Defend => {
+                    // Remove marker (already removed above)
+                }
+            }
+        } else {
+            // No marker, add attack marker
+            self.markers.push(StrategicMarker::new(sector_id, MarkerType::Attack, self.local_faction));
+        }
+    }
+
+    /// Get marker for a sector (if any)
+    pub fn get_marker(&self, sector_id: u32, faction: FactionId) -> Option<&StrategicMarker> {
+        self.markers.iter().find(|m| m.sector_id == sector_id && m.faction == faction)
     }
 }

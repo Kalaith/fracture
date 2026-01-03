@@ -15,72 +15,75 @@ impl super::Simulation {
     ) {
         match order {
             SquadOrder::Advance => self.ai_advance(unit, all_squads, sectors),
-            SquadOrder::Hold => self.ai_hold(unit, all_squads),
-            SquadOrder::Skirmish => self.ai_skirmish(unit, all_squads),
-            SquadOrder::Fortify => self.ai_fortify(unit, all_squads),
+            SquadOrder::Hold => self.ai_hold(unit, all_squads, sectors),
+            SquadOrder::Skirmish => self.ai_skirmish(unit, all_squads, sectors),
+            SquadOrder::Fortify => self.ai_fortify(unit, all_squads, sectors),
         }
     }
 
     pub(super) fn ai_advance(&mut self, unit: &mut Unit, all_squads: &[Squad], sectors: &[Sector]) {
-        // Find nearest uncaptured or enemy sector
-        let target_sector = sectors
+        // Priority 1: Find target sector (unclaimed first, then enemy)
+        let unclaimed_sector = sectors
             .iter()
-            .filter(|s| s.control != Some(unit.owner))
+            .filter(|s| s.control.is_none())
             .min_by_key(|s| (s.position.distance(unit.position) * 100.0) as i32);
 
+        let target_sector = if let Some(sector) = unclaimed_sector {
+            Some(sector)
+        } else {
+            // No unclaimed sectors, target nearest enemy sector
+            sectors
+                .iter()
+                .filter(|s| s.control.is_some() && s.control != Some(unit.owner))
+                .min_by_key(|s| (s.position.distance(unit.position) * 100.0) as i32)
+        };
+
+        // Priority 2: Check for enemies to engage
+        if let Some(enemy_id) = self.find_nearest_enemy(unit, all_squads, 400.0) {
+            let enemy_pos = all_squads
+                .iter()
+                .flat_map(|s| &s.units)
+                .find(|u| u.id == enemy_id)
+                .map(|u| u.position);
+
+            if let Some(pos) = enemy_pos {
+                let dist = unit.position.distance(pos);
+                let attack_range = unit.unit_type.attack_range();
+
+                if dist > attack_range * 0.9 {
+                    // Enemy out of range, move toward it
+                    unit.target_enemy = Some(enemy_id);
+                    let direction = (pos - unit.position).normalize_or_zero();
+                    unit.target_position = Some(pos - direction * (attack_range * 0.8));
+                } else {
+                    // Enemy in range, stop and attack
+                    unit.target_enemy = Some(enemy_id);
+                    unit.target_position = None;
+                }
+                return;
+            }
+        }
+
+        // Priority 3: No enemies, move to sector
         if let Some(sector) = target_sector {
-            // Check for enemies blocking path (long range detection for advance)
-            if let Some(enemy) = self.find_nearest_enemy(unit, all_squads, 400.0) {
-                unit.target_enemy = Some(enemy);
-                unit.target_position = None;
-            } else {
-                unit.target_position = Some(sector.position);
-                unit.target_enemy = None;
-            }
-        }
-    }
-
-    pub(super) fn ai_hold(&mut self, unit: &mut Unit, all_squads: &[Squad]) {
-        // Stay in position, attack nearby enemies
-        if let Some(enemy) = self.find_nearest_enemy(unit, all_squads, 300.0) {
-            unit.target_enemy = Some(enemy);
-        } else {
+            unit.target_position = Some(sector.position);
             unit.target_enemy = None;
         }
-        unit.target_position = None;
     }
 
-    pub(super) fn ai_skirmish(&mut self, unit: &mut Unit, all_squads: &[Squad]) {
-        // If low health, retreat
-        if unit.health_percent() < Config::SKIRMISH_RETREAT_HEALTH {
-            // Move away from nearest enemy
-            if let Some(enemy_pos) = self.find_nearest_enemy_pos(unit, all_squads) {
-                let away = (unit.position - enemy_pos).normalize_or_zero();
-                unit.target_position = Some(unit.position + away * 200.0);
-                unit.target_enemy = None;
-            }
-        } else {
-            // Attack if healthy (long detection range for skirmishers)
-            if let Some(enemy) = self.find_nearest_enemy(unit, all_squads, 350.0) {
-                unit.target_enemy = Some(enemy);
-                unit.target_position = None;
-            } else {
-                // Move to find enemies
-                let angle = ::rand::random::<f32>() * std::f32::consts::TAU;
-                let offset = vec2(angle.cos(), angle.sin()) * 150.0;
-                unit.target_position = Some(unit.position + offset);
-            }
-        }
+    pub(super) fn ai_hold(&mut self, unit: &mut Unit, all_squads: &[Squad], sectors: &[Sector]) {
+        // Use same logic as advance - all units should be active
+        self.ai_advance(unit, all_squads, sectors);
     }
 
-    pub(super) fn ai_fortify(&mut self, unit: &mut Unit, all_squads: &[Squad]) {
-        // Stay put, but still defend by attacking nearby enemies
-        unit.target_position = None;
-        if let Some(enemy) = self.find_nearest_enemy(unit, all_squads, 300.0) {
-            unit.target_enemy = Some(enemy);
-        } else {
-            unit.target_enemy = None;
-        }
+    pub(super) fn ai_skirmish(&mut self, unit: &mut Unit, all_squads: &[Squad], sectors: &[Sector]) {
+        // Use same logic as advance - all units should be active
+        self.ai_advance(unit, all_squads, sectors);
+    }
+
+    pub(super) fn ai_fortify(&mut self, unit: &mut Unit, all_squads: &[Squad], sectors: &[Sector]) {
+        // Use same logic as advance - all units should be active
+        self.ai_advance(unit, all_squads, sectors);
     }
 
     pub(super) fn find_nearest_enemy(

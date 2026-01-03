@@ -38,6 +38,9 @@ impl InputHandler {
 
         // Squad selection and orders
         self.handle_squad_input(game, camera);
+        
+        // Strategic markers
+        self.handle_marker_input(game, camera);
     }
 
     fn handle_game_controls(&self, game: &mut GameState) {
@@ -98,23 +101,36 @@ impl InputHandler {
         }
 
         let unit_type = if is_key_pressed(KeyCode::Key1) {
-            Some(UnitType::Infantry)
+            Some(UnitType::InfantryLight)
         } else if is_key_pressed(KeyCode::Key2) {
-            Some(UnitType::Heavy)
+            Some(UnitType::InfantryHeavy)
         } else if is_key_pressed(KeyCode::Key3) {
-            Some(UnitType::Artillery)
+            Some(UnitType::ArmorLight)
         } else if is_key_pressed(KeyCode::Key4) {
-            Some(UnitType::Drone)
+            Some(UnitType::ArmorHeavy)
+        } else if is_key_pressed(KeyCode::Key5) {
+            Some(UnitType::Artillery)
+        } else if is_key_pressed(KeyCode::Key6) {
+            Some(UnitType::DroneScout)
+        } else if is_key_pressed(KeyCode::Key7) {
+            Some(UnitType::DroneGunship)
+        } else if is_key_pressed(KeyCode::Key8) {
+            Some(UnitType::Engineer)
+        } else if is_key_pressed(KeyCode::Key9) {
+            Some(UnitType::AntiArmor)
+        } else if is_key_pressed(KeyCode::Key0) {
+            Some(UnitType::AntiAir)
         } else {
             None
         };
 
         if let Some(unit_type) = unit_type {
+            println!("Attempting to spawn {:?} for faction {:?}", unit_type, game.local_faction);
             // Spawn a squad of 3 units with Advance order by default
             let result = game.spawn_squad(game.local_faction, unit_type, 3, SquadOrder::Advance);
 
             if let Err(err) = result {
-                println!("Spawn failed: {}", err);
+                println!("✗ Spawn failed: {}", err);
             }
         }
     }
@@ -215,6 +231,33 @@ impl InputHandler {
                 let new_order = orders[new_index];
                 game.change_squad_order(squad_id, new_order);
                 println!("Changed squad {} order to {:?}", squad_id, new_order);
+            }
+        }
+    }
+
+    fn handle_marker_input(&self, game: &mut GameState, camera: &Camera2D) {
+        // Right-click to place/cycle markers on sectors
+        if is_mouse_button_pressed(MouseButton::Right) {
+            let mouse_pos = mouse_position();
+            let world_pos = camera.screen_to_world(vec2(mouse_pos.0, mouse_pos.1));
+
+            // Find clicked sector
+            for sector in &game.sectors {
+                if sector.contains_point(world_pos) {
+                    game.toggle_marker(sector.id);
+                    
+                    // Print marker status
+                    if let Some(marker) = game.get_marker(sector.id, game.local_faction) {
+                        let marker_name = match marker.marker_type {
+                            crate::types::MarkerType::Attack => "ATTACK",
+                            crate::types::MarkerType::Defend => "DEFEND",
+                        };
+                        println!("Marked sector {} as {}", sector.id, marker_name);
+                    } else {
+                        println!("Removed marker from sector {}", sector.id);
+                    }
+                    break;
+                }
             }
         }
     }

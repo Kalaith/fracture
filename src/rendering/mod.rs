@@ -46,6 +46,9 @@ pub fn render_game(game: &GameState, camera: &ToolkitCamera) {
         world::render_sector(sector);
     }
 
+    // Draw strategic markers
+    world::render_markers(&game.markers, &game.sectors);
+
     // Draw squads and units
     for squad in &game.squads {
         world::render_squad(squad);
