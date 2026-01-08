@@ -1,0 +1,243 @@
+{
+  "commander_types": [
+    {
+      "id": "vanguard",
+      "name": "Vanguard Commander",
+      "description": "Frontline pressure and aggressive tactics. Excels at pushing objectives and breakthrough operations.",
+      "passive_effects": {
+        "unit_damage_bonus": 0.1,
+        "advance_speed_bonus": 0.15,
+        "morale_recovery_bonus": 0.2
+      },
+      "available_doctrines": [
+        "aggressive_posture",
+        "shock_windows",
+        "rapid_deployment",
+        "blitz_tactics",
+        "overwhelming_force"
+      ],
+      "abilities": [
+        {
+          "id": "shock_assault",
+          "name": "Shock Assault",
+          "cooldown": 90.0,
+          "duration": 12.0,
+          "effect": {
+            "type": "area_damage_boost",
+            "value": 0.5,
+            "radius": 250.0
+          },
+          "description": "All friendly units in area deal +50% damage for 12 seconds"
+        },
+        {
+          "id": "rally_point",
+          "name": "Rally Point",
+          "cooldown": 120.0,
+          "duration": 20.0,
+          "effect": {
+            "type": "spawn_boost",
+            "value": 0.5,
+            "radius": 200.0
+          },
+          "description": "Units spawn 50% faster and arrive at target location instantly"
+        }
+      ],
+      "starting_supply": 100,
+      "supply_cap": 100,
+      "color": "#FF4444"
+    },
+    {
+      "id": "engineer",
+      "name": "Engineer Commander",
+      "description": "Logistics and support specialist. Masters of supply lines, repairs, and fortification.",
+      "passive_effects": {
+        "repair_speed_bonus": 0.5,
+        "supply_efficiency": 0.15,
+        "fortification_build_speed": 0.3
+      },
+      "available_doctrines": [
+        "resource_efficiency",
+        "rapid_repair",
+        "fortified_positions",
+        "supply_mastery",
+        "redundant_systems",
+        "field_hospitals",
+        "modular_construction"
+      ],
+      "abilities": [
+        {
+          "id": "emergency_repairs",
+          "name": "Emergency Repairs",
+          "cooldown": 60.0,
+          "duration": 0.0,
+          "effect": {
+            "type": "instant_heal",
+            "value": 0.4,
+            "radius": 300.0
+          },
+          "description": "Instantly restore 40% health to all units in area"
+        },
+        {
+          "id": "supply_drop",
+          "name": "Supply Drop",
+          "cooldown": 100.0,
+          "duration": 30.0,
+          "effect": {
+            "type": "temporary_supply_hub",
+            "value": 150.0,
+            "radius": 200.0
+          },
+          "description": "Create temporary forward supply point for 30 seconds"
+        }
+      ],
+      "starting_supply": 100,
+      "supply_cap": 120,
+      "color": "#44AA44"
+    },
+    {
+      "id": "control",
+      "name": "Control Commander",
+      "description": "Area denial and defensive warfare. Excels at holding territory and slowing enemy advances.",
+      "passive_effects": {
+        "defensive_bonus": 0.2,
+        "sector_capture_resistance": 0.3,
+        "enemy_speed_reduction": 0.1
+      },
+      "available_doctrines": [
+        "entrenched_assault",
+        "area_denial",
+        "defensive_matrix",
+        "suppression_fire",
+        "layered_defense",
+        "fortified_positions"
+      ],
+      "abilities": [
+        {
+          "id": "suppression_field",
+          "name": "Suppression Field",
+          "cooldown": 75.0,
+          "duration": 15.0,
+          "effect": {
+            "type": "area_slow",
+            "value": 0.5,
+            "radius": 300.0
+          },
+          "description": "Enemy units in area move 50% slower and deal 20% less damage"
+        },
+        {
+          "id": "lockdown",
+          "name": "Sector Lockdown",
+          "cooldown": 120.0,
+          "duration": 20.0,
+          "effect": {
+            "type": "sector_fortify",
+            "value": 0.0,
+            "radius": 0.0,
+            "target": "sector"
+          },
+          "description": "Selected sector becomes uncapturable and provides +40% defense to friendly units"
+        }
+      ],
+      "starting_supply": 100,
+      "supply_cap": 100,
+      "color": "#4444FF"
+    },
+    {
+      "id": "disruptor",
+      "name": "Disruptor Commander",
+      "description": "Sabotage and harassment. Specializes in hit-and-run tactics and disrupting enemy operations.",
+      "passive_effects": {
+        "skirmish_effectiveness": 0.3,
+        "enemy_supply_disruption": 0.1,
+        "retreat_speed_bonus": 0.25
+      },
+      "available_doctrines": [
+        "hit_and_run",
+        "sabotage",
+        "guerrilla_warfare",
+        "supply_interdiction",
+        "rapid_deployment"
+      ],
+      "abilities": [
+        {
+          "id": "emp_strike",
+          "name": "EMP Strike",
+          "cooldown": 80.0,
+          "duration": 8.0,
+          "effect": {
+            "type": "disable",
+            "value": 0.0,
+            "radius": 200.0
+          },
+          "description": "Enemy units in area cannot attack for 8 seconds"
+        },
+        {
+          "id": "supply_raid",
+          "name": "Supply Raid",
+          "cooldown": 100.0,
+          "duration": 0.0,
+          "effect": {
+            "type": "steal_supply",
+            "value": 30.0,
+            "radius": 250.0
+          },
+          "description": "Drain 30 supply from nearest enemy and add to your pool"
+        }
+      ],
+      "starting_supply": 100,
+      "supply_cap": 90,
+      "color": "#AA44AA"
+    },
+    {
+      "id": "wildcard",
+      "name": "Wildcard Commander",
+      "description": "Experimental tactics and unpredictable strategies. High risk, high reward gameplay.",
+      "passive_effects": {
+        "critical_hit_chance": 0.15,
+        "ability_cooldown_reduction": 0.2,
+        "random_bonus_chance": 0.1
+      },
+      "available_doctrines": [
+        "experimental_weapons",
+        "calculated_risk",
+        "volatile_ammunition",
+        "prototype_systems",
+        "chaos_theory"
+      ],
+      "abilities": [
+        {
+          "id": "orbital_strike",
+          "name": "Orbital Strike",
+          "cooldown": 150.0,
+          "duration": 0.0,
+          "effect": {
+            "type": "massive_damage",
+            "value": 200.0,
+            "radius": 150.0
+          },
+          "description": "Deal 200 damage to all units in small area. Long cooldown."
+        },
+        {
+          "id": "overcharge",
+          "name": "System Overcharge",
+          "cooldown": 90.0,
+          "duration": 10.0,
+          "effect": {
+            "type": "all_stats_boost",
+            "value": 0.5,
+            "radius": 300.0
+          },
+          "description": "All friendly units in area gain +50% to all stats, then take damage when effect ends"
+        }
+      ],
+      "starting_supply": 100,
+      "supply_cap": 100,
+      "color": "#FFAA00"
+    }
+  ],
+  "_metadata": {
+    "version": "1.0",
+    "last_updated": "2026-01-03",
+    "design_notes": "Each commander type should feel distinct. Abilities are intentionally simple to avoid micro-heavy gameplay."
+  }
+}

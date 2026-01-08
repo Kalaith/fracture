@@ -24,6 +24,8 @@ pub struct GameState {
     pub paused: bool,
     pub game_speed: f32, // 1.0 = normal, 0.5 = slow, 2.0 = fast
     pub markers: Vec<StrategicMarker>, // Player-placed attack/defend markers
+    pub units_spawned: [u32; 3],  // Track units spawned per faction (Phase 4)
+    pub units_lost: [u32; 3],      // Track units lost per faction (Phase 4)
 }
 
 impl GameState {
@@ -51,12 +53,22 @@ impl GameState {
             ),
         ];
 
-        // Create sectors
+        // Create sectors with different types for strategic variety
         let sector_positions = get_sector_positions();
+        let sector_types = [
+            SectorType::Standard,
+            SectorType::SupplyDepot,
+            SectorType::HighGround,
+            SectorType::Fortified,
+            SectorType::Industrial,
+        ];
         let sectors = sector_positions
             .iter()
             .enumerate()
-            .map(|(i, pos)| Sector::new(i as u32, *pos, Config::SECTOR_RADIUS))
+            .map(|(i, pos)| {
+                let sector_type = sector_types[i % sector_types.len()];
+                Sector::new(i as u32, *pos, Config::SECTOR_RADIUS).with_type(sector_type)
+            })
             .collect();
 
         Self {
@@ -73,6 +85,8 @@ impl GameState {
             paused: false,
             game_speed: 1.0,
             markers: Vec::new(),
+            units_spawned: [0, 0, 0],
+            units_lost: [0, 0, 0],
         }
     }
 
@@ -100,6 +114,7 @@ impl GameState {
             let effects = self.simulation.resolve_combat(
                 &mut self.squads,
                 &self.commanders,
+                &self.sectors,
                 faction_id,
                 self.game_time,
                 dt,
@@ -120,12 +135,17 @@ impl GameState {
                 if !unit.is_alive() && unit.health < 0.0 && unit.health > -10.0 {
                     // Just died, create death effect
                     self.combat_effects.push(CombatEffect::new_kill(unit.position));
+                    // Track units lost (Phase 4)
+                    self.units_lost[squad.owner.index()] += 1;
                 }
             }
         }
 
         // Clean up empty squads
         self.squads.retain(|s| !s.is_empty());
+
+        // Update morale (Phase 4)
+        self.update_morale(dt);
 
         // Update supply counts
         self.update_supply_counts();
@@ -134,10 +154,36 @@ impl GameState {
         self.check_victory(dt);
     }
 
+    fn update_morale(&mut self, dt: f32) {
+        for squad in &mut self.squads {
+            // Get commander type morale recovery bonus (Phase 4)
+            let commander = &self.commanders[squad.owner.index()];
+            let recovery_bonus = commander.commander_type.morale_recovery_bonus();
+
+            // Morale recovers slowly over time (10% per 10 seconds, modified by commander type)
+            squad.morale = (squad.morale + dt * 0.01 * recovery_bonus).min(1.0);
+
+            // Morale drops if squad is heavily damaged
+            if !squad.units.is_empty() {
+                let avg_health: f32 = squad.units.iter()
+                    .map(|u| u.health_percent())
+                    .sum::<f32>() / squad.units.len() as f32;
+
+                // Low average health reduces morale
+                if avg_health < 0.3 {
+                    squad.morale = (squad.morale - dt * 0.05).max(0.0);
+                } else if avg_health < 0.5 {
+                    squad.morale = (squad.morale - dt * 0.02).max(0.0);
+                }
+            }
+        }
+    }
+
     fn update_supply_counts(&mut self) {
-        // Reset supply counts
+        // Reset supply counts and max (will add sector bonuses)
         for commander in &mut self.commanders {
             commander.supply_used = 0;
+            commander.supply_max = Config::SUPPLY_MAX; // Reset to base
         }
 
         // Count supply usage per faction
@@ -146,6 +192,15 @@ impl GameState {
         for squad in &self.squads {
             for unit in &squad.units {
                 faction_supply[squad.owner.index()] += unit.unit_type.supply_cost();
+            }
+        }
+
+        // Apply sector bonuses (Supply Depot sectors give +20 max supply)
+        for sector in &self.sectors {
+            if let Some(owner) = sector.control {
+                if sector.sector_type == SectorType::SupplyDepot {
+                    self.commanders[owner.index()].supply_max += 20;
+                }
             }
         }
 
@@ -223,6 +278,9 @@ impl GameState {
 
         self.squads.push(squad);
 
+        // Track units spawned (Phase 4)
+        self.units_spawned[owner.index()] += count;
+
         // Deduct supply and reset spawn timer
         let commander = self.get_commander_mut(owner);
         commander.supply_used += actual_cost;
@@ -278,10 +336,10 @@ impl GameState {
     /// Toggle marker on a sector (cycles: None -> Attack -> Defend -> None)
     pub fn toggle_marker(&mut self, sector_id: u32) {
         // Find existing marker for this sector and faction
-        if let Some(pos) = self.markers.iter().position(|m| m.sector_id == sector_id && m.faction == self.local_faction) {
+        if let Some(pos) = self.markers.iter().position(|m| m.sector_id == sector_id && m.owner == self.local_faction) {
             let current_type = self.markers[pos].marker_type;
             self.markers.remove(pos);
-            
+
             // Cycle to next type
             match current_type {
                 MarkerType::Attack => {
@@ -299,6 +357,18 @@ impl GameState {
 
     /// Get marker for a sector (if any)
     pub fn get_marker(&self, sector_id: u32, faction: FactionId) -> Option<&StrategicMarker> {
-        self.markers.iter().find(|m| m.sector_id == sector_id && m.faction == faction)
+        self.markers.iter().find(|m| m.sector_id == sector_id && m.owner == faction)
+    }
+
+    /// Get the sector at a specific position (if any)
+    pub fn get_sector_at(&self, position: Vec2) -> Option<&Sector> {
+        self.sectors.iter().find(|s| s.contains_point(position))
+    }
+
+    /// Check if a position is in a sector with a specific type
+    pub fn is_in_sector_type(&self, position: Vec2, sector_type: SectorType) -> bool {
+        self.get_sector_at(position)
+            .map(|s| s.sector_type == sector_type)
+            .unwrap_or(false)
     }
 }

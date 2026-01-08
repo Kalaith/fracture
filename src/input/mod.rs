@@ -241,22 +241,23 @@ impl InputHandler {
             let mouse_pos = mouse_position();
             let world_pos = camera.screen_to_world(vec2(mouse_pos.0, mouse_pos.1));
 
-            // Find clicked sector
-            for sector in &game.sectors {
-                if sector.contains_point(world_pos) {
-                    game.toggle_marker(sector.id);
-                    
-                    // Print marker status
-                    if let Some(marker) = game.get_marker(sector.id, game.local_faction) {
-                        let marker_name = match marker.marker_type {
-                            crate::types::MarkerType::Attack => "ATTACK",
-                            crate::types::MarkerType::Defend => "DEFEND",
-                        };
-                        println!("Marked sector {} as {}", sector.id, marker_name);
-                    } else {
-                        println!("Removed marker from sector {}", sector.id);
-                    }
-                    break;
+            // Find clicked sector (store ID to avoid borrow issues)
+            let clicked_sector_id = game.sectors.iter()
+                .find(|sector| sector.contains_point(world_pos))
+                .map(|sector| sector.id);
+
+            if let Some(sector_id) = clicked_sector_id {
+                game.toggle_marker(sector_id);
+
+                // Print marker status
+                if let Some(marker) = game.get_marker(sector_id, game.local_faction) {
+                    let marker_name = match marker.marker_type {
+                        crate::types::MarkerType::Attack => "ATTACK",
+                        crate::types::MarkerType::Defend => "DEFEND",
+                    };
+                    println!("Marked sector {} as {}", sector_id, marker_name);
+                } else {
+                    println!("Removed marker from sector {}", sector_id);
                 }
             }
         }

@@ -295,33 +295,43 @@ pub struct GameData {
 impl GameData {
     /// Load all game data from JSON files
     pub fn load() -> Result<Self, String> {
+        // Helper macro to load JSON files correctly on both WASM and Native
+        macro_rules! load_json_content {
+            ($path:literal) => {{
+                #[cfg(target_arch = "wasm32")]
+                let content = include_str!(concat!("../", $path));
+
+                #[cfg(not(target_arch = "wasm32"))]
+                let content = match std::fs::read_to_string($path) {
+                    Ok(c) => c,
+                    Err(_) => include_str!(concat!("../", $path)).to_string(),
+                };
+                content
+            }};
+        }
+
         // Load unit types
-        let units_json = std::fs::read_to_string("assets/data/unit_types.json")
-            .map_err(|e| format!("Failed to read unit_types.json: {}", e))?;
+        let units_json = load_json_content!("assets/data/unit_types.json");
         let units_root: UnitTypesRoot = serde_json::from_str(&units_json)
             .map_err(|e| format!("Failed to parse unit_types.json: {}", e))?;
 
         // Load commander types
-        let commanders_json = std::fs::read_to_string("assets/data/commander_types.json")
-            .map_err(|e| format!("Failed to read commander_types.json: {}", e))?;
+        let commanders_json = load_json_content!("assets/data/commander_types.json");
         let commanders_root: CommanderTypesRoot = serde_json::from_str(&commanders_json)
             .map_err(|e| format!("Failed to parse commander_types.json: {}", e))?;
 
         // Load doctrines
-        let doctrines_json = std::fs::read_to_string("assets/data/doctrines.json")
-            .map_err(|e| format!("Failed to read doctrines.json: {}", e))?;
+        let doctrines_json = load_json_content!("assets/data/doctrines.json");
         let doctrines_root: DoctrinesRoot = serde_json::from_str(&doctrines_json)
             .map_err(|e| format!("Failed to parse doctrines.json: {}", e))?;
 
         // Load AI personalities
-        let ai_json = std::fs::read_to_string("assets/data/ai_personalities.json")
-            .map_err(|e| format!("Failed to read ai_personalities.json: {}", e))?;
+        let ai_json = load_json_content!("assets/data/ai_personalities.json");
         let ai_root: AIPersonalitiesRoot = serde_json::from_str(&ai_json)
             .map_err(|e| format!("Failed to parse ai_personalities.json: {}", e))?;
 
         // Load maps
-        let maps_json = std::fs::read_to_string("assets/data/maps.json")
-            .map_err(|e| format!("Failed to read maps.json: {}", e))?;
+        let maps_json = load_json_content!("assets/data/maps.json");
         let maps_root: MapsRoot = serde_json::from_str(&maps_json)
             .map_err(|e| format!("Failed to parse maps.json: {}", e))?;
 

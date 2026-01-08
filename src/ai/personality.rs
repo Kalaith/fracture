@@ -125,7 +125,7 @@ impl AIPersonality {
             _ => 0.5,
         };
 
-        rand::random::<f32>() < weight
+        macroquad_toolkit::rng::rand() < weight
     }
 
     /// Get doctrine category preference

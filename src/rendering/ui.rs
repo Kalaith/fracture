@@ -56,6 +56,59 @@ pub fn render_minimap(game: &GameState) {
         14.0,
         dark::TEXT_DIM,
     );
+
+    // Supply flow visualization (Phase 4) - Faction supply bars below minimap
+    let supply_bar_y = minimap_y + minimap_size + 30.0;
+    render_faction_supply_bars(game, minimap_x, supply_bar_y, minimap_size);
+}
+
+fn render_faction_supply_bars(game: &GameState, x: f32, y: f32, width: f32) {
+    use crate::types::FactionId;
+
+    let bar_height = 15.0;
+    let spacing = 5.0;
+    let mut current_y = y;
+
+    let factions = [
+        (FactionId::Faction1, "Blue", Color::from_rgba(100, 150, 255, 200)),
+        (FactionId::Faction2, "Red", Color::from_rgba(255, 100, 100, 200)),
+        (FactionId::Faction3, "Green", Color::from_rgba(100, 255, 150, 200)),
+    ];
+
+    for (faction_id, name, color) in factions {
+        let commander = &game.commanders[faction_id.index()];
+        let supply_percent = commander.supply_used as f32 / commander.supply_max as f32;
+
+        // Faction label
+        draw_text(
+            &format!("{}: {}/{}", name, commander.supply_used, commander.supply_max),
+            x,
+            current_y,
+            12.0,
+            dark::TEXT_DIM,
+        );
+        current_y += 14.0;
+
+        // Supply bar background
+        draw_rectangle(
+            x,
+            current_y,
+            width,
+            bar_height,
+            dark::PANEL,
+        );
+
+        // Supply bar fill
+        draw_rectangle(
+            x,
+            current_y,
+            width * supply_percent,
+            bar_height,
+            color,
+        );
+
+        current_y += bar_height + spacing;
+    }
 }
 
 pub fn render_ui(game: &GameState) {
@@ -66,7 +119,7 @@ pub fn render_ui(game: &GameState) {
     render_commander_panel(game, margin, margin, panel_width);
 
     // Build panel
-    let commander_height = 290.0;
+    let commander_height = 350.0;
     render_build_panel(game, margin, margin + commander_height + 10.0, panel_width);
 
     // Minimap
@@ -180,10 +233,29 @@ fn render_build_panel(game: &GameState, x: f32, y: f32, width: f32) {
 fn render_commander_panel(game: &GameState, x: f32, y: f32, width: f32) {
     let commander = game.get_local_commander();
 
-    macroquad_toolkit::ui::panel(x, y, width, 290.0, Some("Commander"));
+    macroquad_toolkit::ui::panel(x, y, width, 350.0, Some("Commander"));
 
     let mut y_offset = y + 40.0;
     let text_x = x + Config::UI_MARGIN;
+
+    // Commander type and ability (Phase 4)
+    draw_text(
+        &format!("Type: {:?}", commander.commander_type),
+        text_x,
+        y_offset,
+        Config::UI_FONT_SIZE - 2.0,
+        dark::TEXT_DIM,
+    );
+    y_offset += 18.0;
+
+    draw_text(
+        &format!("Ability: {}", commander.commander_type.ability_description()),
+        text_x,
+        y_offset,
+        Config::UI_FONT_SIZE - 3.0,
+        dark::ACCENT,
+    );
+    y_offset += 25.0;
 
     // Supply info
     draw_text(
@@ -198,7 +270,16 @@ fn render_commander_panel(game: &GameState, x: f32, y: f32, width: f32) {
     );
     y_offset += 25.0;
 
-    // Supply bar
+    // Supply bar with color based on usage
+    let supply_percent = commander.supply_used as f32 / commander.supply_max as f32;
+    let supply_color = if supply_percent > 0.9 {
+        dark::NEGATIVE // Red when very full
+    } else if supply_percent > 0.75 {
+        dark::WARNING // Orange when getting full
+    } else {
+        dark::ACCENT // Normal color
+    };
+
     macroquad_toolkit::ui::progress_bar(
         text_x,
         y_offset,
@@ -206,7 +287,7 @@ fn render_commander_panel(game: &GameState, x: f32, y: f32, width: f32) {
         20.0,
         commander.supply_used as f32,
         commander.supply_max as f32,
-        dark::ACCENT,
+        supply_color,
     );
     y_offset += 30.0;
 
@@ -274,6 +355,27 @@ fn render_commander_panel(game: &GameState, x: f32, y: f32, width: f32) {
         );
         y_offset += 20.0;
     }
+
+    // Show doctrine interaction (synergy/conflict)
+    if let Some(interaction) = commander.doctrine_interaction_desc() {
+        y_offset += 5.0;
+        let modifier = commander.doctrine_modifier();
+        let color = if modifier > 1.0 {
+            dark::POSITIVE
+        } else if modifier < 1.0 {
+            dark::WARNING
+        } else {
+            dark::TEXT_DIM
+        };
+
+        draw_text(
+            &interaction,
+            text_x,
+            y_offset,
+            Config::UI_FONT_SIZE - 3.0,
+            color,
+        );
+    }
 }
 
 fn render_victory_panel(game: &GameState, x: f32, y: f32) {
@@ -309,8 +411,8 @@ fn render_victory_panel(game: &GameState, x: f32, y: f32) {
 fn render_game_over(game: &GameState) {
     use crate::types::FactionId;
 
-    let panel_width = 400.0;
-    let panel_height = 200.0;
+    let panel_width = 500.0;
+    let panel_height = 350.0;
     let x = screen_width() / 2.0 - panel_width / 2.0;
     let y = screen_height() / 2.0 - panel_height / 2.0;
 
@@ -326,7 +428,7 @@ fn render_game_over(game: &GameState) {
     macroquad_toolkit::ui::panel(x, y, panel_width, panel_height, Some("Game Over"));
 
     let text_x = x + panel_width / 2.0;
-    let mut y_offset = y + 80.0;
+    let mut y_offset = y + 60.0;
 
     let winner_text = match game.winner {
         Some(faction_id) => {
@@ -349,7 +451,7 @@ fn render_game_over(game: &GameState) {
         dark::NEGATIVE
     };
 
-    // Center the text
+    // Winner announcement
     let text_size = 40.0;
     let text_dims = measure_text(winner_text, None, text_size as u16, 1.0);
     draw_text(
@@ -359,8 +461,67 @@ fn render_game_over(game: &GameState) {
         text_size,
         text_color,
     );
-    y_offset += 60.0;
+    y_offset += 50.0;
 
+    // Game stats (Phase 4)
+    let stats_x = x + 30.0;
+    draw_text(
+        "Final Statistics:",
+        stats_x,
+        y_offset,
+        18.0,
+        dark::TEXT,
+    );
+    y_offset += 30.0;
+
+    // Display stats for all factions
+    let factions = [
+        (FactionId::Faction1, "Blue", Color::from_rgba(100, 150, 255, 255)),
+        (FactionId::Faction2, "Red", Color::from_rgba(255, 100, 100, 255)),
+        (FactionId::Faction3, "Green", Color::from_rgba(100, 255, 150, 255)),
+    ];
+
+    for (faction_id, name, color) in factions {
+        let idx = faction_id.index();
+        let sectors_held = game.sectors.iter().filter(|s| s.control == Some(faction_id)).count();
+
+        draw_text(
+            &format!("{} Faction:", name),
+            stats_x,
+            y_offset,
+            16.0,
+            color,
+        );
+        y_offset += 20.0;
+
+        draw_text(
+            &format!("  Units Spawned: {}  Lost: {}  Sectors: {}",
+                game.units_spawned[idx],
+                game.units_lost[idx],
+                sectors_held),
+            stats_x,
+            y_offset,
+            14.0,
+            dark::TEXT_DIM,
+        );
+        y_offset += 25.0;
+    }
+
+    y_offset += 10.0;
+
+    // Game duration
+    let minutes = (game.game_time / 60.0) as u32;
+    let seconds = (game.game_time % 60.0) as u32;
+    draw_text(
+        &format!("Game Duration: {}:{:02}", minutes, seconds),
+        stats_x,
+        y_offset,
+        14.0,
+        dark::TEXT_DIM,
+    );
+    y_offset += 30.0;
+
+    // Exit prompt
     let subtitle = "Press ESC to exit";
     let subtitle_dims = measure_text(subtitle, None, Config::UI_FONT_SIZE as u16, 1.0);
     draw_text(

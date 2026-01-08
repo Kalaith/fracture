@@ -62,7 +62,7 @@ impl CommanderAI {
     /// Update active doctrines based on situation
     fn update_doctrines(&self, game: &mut GameState, analysis: &StrategicAnalysis) {
         // Only change doctrines occasionally (low confidence personalities change more)
-        if rand::random::<f32>() > self.personality.decision_timing.decision_confidence {
+        if macroquad_toolkit::rng::rand() > self.personality.decision_timing.decision_confidence {
             return;
         }
 
@@ -178,7 +178,7 @@ impl CommanderAI {
     fn choose_unit_type(&self, _game: &GameState) -> UnitType {
         // Simple heuristic: choose randomly from base types
         // In full implementation, would use preferred_unit_types from personality
-        let choice = rand::random::<f32>();
+        let choice = macroquad_toolkit::rng::rand();
 
         if choice < 0.3 {
             UnitType::InfantryLight
