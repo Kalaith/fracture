@@ -12,7 +12,7 @@ use macroquad::prelude::*;
 /// Game state - central container for all game data
 pub struct GameState {
     pub local_faction: FactionId,
-    pub commanders: [Commander; 3],  // One per faction
+    pub commanders: [Commander; 3], // One per faction
     pub squads: Vec<Squad>,
     pub sectors: Vec<Sector>,
     pub simulation: Simulation,
@@ -22,10 +22,10 @@ pub struct GameState {
     pub winner: Option<FactionId>,
     pub combat_effects: Vec<CombatEffect>,
     pub paused: bool,
-    pub game_speed: f32, // 1.0 = normal, 0.5 = slow, 2.0 = fast
+    pub game_speed: f32,               // 1.0 = normal, 0.5 = slow, 2.0 = fast
     pub markers: Vec<StrategicMarker>, // Player-placed attack/defend markers
-    pub units_spawned: [u32; 3],  // Track units spawned per faction (Phase 4)
-    pub units_lost: [u32; 3],      // Track units lost per faction (Phase 4)
+    pub units_spawned: [u32; 3],       // Track units spawned per faction (Phase 4)
+    pub units_lost: [u32; 3],          // Track units lost per faction (Phase 4)
 }
 
 impl GameState {
@@ -134,7 +134,8 @@ impl GameState {
             for unit in &squad.units {
                 if !unit.is_alive() && unit.health < 0.0 && unit.health > -10.0 {
                     // Just died, create death effect
-                    self.combat_effects.push(CombatEffect::new_kill(unit.position));
+                    self.combat_effects
+                        .push(CombatEffect::new_kill(unit.position));
                     // Track units lost (Phase 4)
                     self.units_lost[squad.owner.index()] += 1;
                 }
@@ -165,9 +166,8 @@ impl GameState {
 
             // Morale drops if squad is heavily damaged
             if !squad.units.is_empty() {
-                let avg_health: f32 = squad.units.iter()
-                    .map(|u| u.health_percent())
-                    .sum::<f32>() / squad.units.len() as f32;
+                let avg_health: f32 = squad.units.iter().map(|u| u.health_percent()).sum::<f32>()
+                    / squad.units.len() as f32;
 
                 // Low average health reduces morale
                 if avg_health < 0.3 {
@@ -336,14 +336,22 @@ impl GameState {
     /// Toggle marker on a sector (cycles: None -> Attack -> Defend -> None)
     pub fn toggle_marker(&mut self, sector_id: u32) {
         // Find existing marker for this sector and faction
-        if let Some(pos) = self.markers.iter().position(|m| m.sector_id == sector_id && m.owner == self.local_faction) {
+        if let Some(pos) = self
+            .markers
+            .iter()
+            .position(|m| m.sector_id == sector_id && m.owner == self.local_faction)
+        {
             let current_type = self.markers[pos].marker_type;
             self.markers.remove(pos);
 
             // Cycle to next type
             match current_type {
                 MarkerType::Attack => {
-                    self.markers.push(StrategicMarker::new(sector_id, MarkerType::Defend, self.local_faction));
+                    self.markers.push(StrategicMarker::new(
+                        sector_id,
+                        MarkerType::Defend,
+                        self.local_faction,
+                    ));
                 }
                 MarkerType::Defend => {
                     // Remove marker (already removed above)
@@ -351,13 +359,19 @@ impl GameState {
             }
         } else {
             // No marker, add attack marker
-            self.markers.push(StrategicMarker::new(sector_id, MarkerType::Attack, self.local_faction));
+            self.markers.push(StrategicMarker::new(
+                sector_id,
+                MarkerType::Attack,
+                self.local_faction,
+            ));
         }
     }
 
     /// Get marker for a sector (if any)
     pub fn get_marker(&self, sector_id: u32, faction: FactionId) -> Option<&StrategicMarker> {
-        self.markers.iter().find(|m| m.sector_id == sector_id && m.owner == faction)
+        self.markers
+            .iter()
+            .find(|m| m.sector_id == sector_id && m.owner == faction)
     }
 
     /// Get the sector at a specific position (if any)

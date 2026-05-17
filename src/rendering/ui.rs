@@ -13,9 +13,12 @@ pub fn render_minimap(game: &GameState) {
     let scale_x = minimap_size / Config::WORLD_WIDTH;
     let scale_y = minimap_size / Config::WORLD_HEIGHT;
 
-    // Background
-    draw_rectangle(minimap_x, minimap_y, minimap_size, minimap_size, dark::PANEL);
-    draw_rectangle_lines(minimap_x, minimap_y, minimap_size, minimap_size, 2.0, dark::TEXT);
+    let minimap_surface =
+        macroquad_toolkit::ui::SurfaceStyle::new(dark::PANEL).with_border(2.0, dark::TEXT);
+    macroquad_toolkit::ui::draw_surface(
+        Rect::new(minimap_x, minimap_y, minimap_size, minimap_size),
+        &minimap_surface,
+    );
 
     // Draw sectors
     for sector in &game.sectors {
@@ -70,9 +73,21 @@ fn render_faction_supply_bars(game: &GameState, x: f32, y: f32, width: f32) {
     let mut current_y = y;
 
     let factions = [
-        (FactionId::Faction1, "Blue", Color::from_rgba(100, 150, 255, 200)),
-        (FactionId::Faction2, "Red", Color::from_rgba(255, 100, 100, 200)),
-        (FactionId::Faction3, "Green", Color::from_rgba(100, 255, 150, 200)),
+        (
+            FactionId::Faction1,
+            "Blue",
+            Color::from_rgba(100, 150, 255, 200),
+        ),
+        (
+            FactionId::Faction2,
+            "Red",
+            Color::from_rgba(255, 100, 100, 200),
+        ),
+        (
+            FactionId::Faction3,
+            "Green",
+            Color::from_rgba(100, 255, 150, 200),
+        ),
     ];
 
     for (faction_id, name, color) in factions {
@@ -81,7 +96,10 @@ fn render_faction_supply_bars(game: &GameState, x: f32, y: f32, width: f32) {
 
         // Faction label
         draw_text(
-            &format!("{}: {}/{}", name, commander.supply_used, commander.supply_max),
+            &format!(
+                "{}: {}/{}",
+                name, commander.supply_used, commander.supply_max
+            ),
             x,
             current_y,
             12.0,
@@ -89,21 +107,13 @@ fn render_faction_supply_bars(game: &GameState, x: f32, y: f32, width: f32) {
         );
         current_y += 14.0;
 
-        // Supply bar background
-        draw_rectangle(
+        macroquad_toolkit::ui::progress_bar(
             x,
             current_y,
             width,
             bar_height,
-            dark::PANEL,
-        );
-
-        // Supply bar fill
-        draw_rectangle(
-            x,
-            current_y,
-            width * supply_percent,
-            bar_height,
+            supply_percent,
+            1.0,
             color,
         );
 
@@ -200,18 +210,9 @@ fn render_build_panel(game: &GameState, x: f32, y: f32, width: f32) {
                 total_cost, health, armor, damage
             )
         } else {
-            format!(
-                "  Cost:{} HP:{:.0} DMG:{:.0}",
-                total_cost, health, damage
-            )
+            format!("  Cost:{} HP:{:.0} DMG:{:.0}", total_cost, health, damage)
         };
-        draw_text(
-            &stats_text,
-            text_x,
-            y_offset,
-            12.0,
-            dark::TEXT_DIM,
-        );
+        draw_text(&stats_text, text_x, y_offset, 12.0, dark::TEXT_DIM);
         y_offset += 20.0;
     }
 
@@ -249,7 +250,10 @@ fn render_commander_panel(game: &GameState, x: f32, y: f32, width: f32) {
     y_offset += 18.0;
 
     draw_text(
-        &format!("Ability: {}", commander.commander_type.ability_description()),
+        &format!(
+            "Ability: {}",
+            commander.commander_type.ability_description()
+        ),
         text_x,
         y_offset,
         Config::UI_FONT_SIZE - 3.0,
@@ -259,10 +263,7 @@ fn render_commander_panel(game: &GameState, x: f32, y: f32, width: f32) {
 
     // Supply info
     draw_text(
-        &format!(
-            "Supply: {}/{}",
-            commander.supply_used, commander.supply_max
-        ),
+        &format!("Supply: {}/{}", commander.supply_used, commander.supply_max),
         text_x,
         y_offset,
         Config::UI_FONT_SIZE,
@@ -465,25 +466,35 @@ fn render_game_over(game: &GameState) {
 
     // Game stats (Phase 4)
     let stats_x = x + 30.0;
-    draw_text(
-        "Final Statistics:",
-        stats_x,
-        y_offset,
-        18.0,
-        dark::TEXT,
-    );
+    draw_text("Final Statistics:", stats_x, y_offset, 18.0, dark::TEXT);
     y_offset += 30.0;
 
     // Display stats for all factions
     let factions = [
-        (FactionId::Faction1, "Blue", Color::from_rgba(100, 150, 255, 255)),
-        (FactionId::Faction2, "Red", Color::from_rgba(255, 100, 100, 255)),
-        (FactionId::Faction3, "Green", Color::from_rgba(100, 255, 150, 255)),
+        (
+            FactionId::Faction1,
+            "Blue",
+            Color::from_rgba(100, 150, 255, 255),
+        ),
+        (
+            FactionId::Faction2,
+            "Red",
+            Color::from_rgba(255, 100, 100, 255),
+        ),
+        (
+            FactionId::Faction3,
+            "Green",
+            Color::from_rgba(100, 255, 150, 255),
+        ),
     ];
 
     for (faction_id, name, color) in factions {
         let idx = faction_id.index();
-        let sectors_held = game.sectors.iter().filter(|s| s.control == Some(faction_id)).count();
+        let sectors_held = game
+            .sectors
+            .iter()
+            .filter(|s| s.control == Some(faction_id))
+            .count();
 
         draw_text(
             &format!("{} Faction:", name),
@@ -495,10 +506,10 @@ fn render_game_over(game: &GameState) {
         y_offset += 20.0;
 
         draw_text(
-            &format!("  Units Spawned: {}  Lost: {}  Sectors: {}",
-                game.units_spawned[idx],
-                game.units_lost[idx],
-                sectors_held),
+            &format!(
+                "  Units Spawned: {}  Lost: {}  Sectors: {}",
+                game.units_spawned[idx], game.units_lost[idx], sectors_held
+            ),
             stats_x,
             y_offset,
             14.0,
@@ -567,24 +578,12 @@ pub fn render_game_status(game: &GameState) {
 
     // Pause indicator
     if game.paused {
-        draw_text(
-            "PAUSED",
-            x,
-            y,
-            32.0,
-            Color::from_rgba(255, 200, 100, 200),
-        );
+        draw_text("PAUSED", x, y, 32.0, Color::from_rgba(255, 200, 100, 200));
     }
 
     // Speed indicator
     if game.game_speed != 1.0 {
         let speed_text = format!("Speed: {:.1}x", game.game_speed);
-        draw_text(
-            &speed_text,
-            x,
-            y + 35.0,
-            20.0,
-            dark::TEXT,
-        );
+        draw_text(&speed_text, x, y + 35.0, 20.0, dark::TEXT);
     }
 }

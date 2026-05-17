@@ -22,8 +22,14 @@ pub fn render_markers(markers: &[StrategicMarker], sectors: &[Sector]) {
                     // Draw attack arrow (upward triangle)
                     draw_triangle(
                         vec2(sector.position.x, icon_y - icon_size / 2.0),
-                        vec2(sector.position.x - icon_size / 2.0, icon_y + icon_size / 2.0),
-                        vec2(sector.position.x + icon_size / 2.0, icon_y + icon_size / 2.0),
+                        vec2(
+                            sector.position.x - icon_size / 2.0,
+                            icon_y + icon_size / 2.0,
+                        ),
+                        vec2(
+                            sector.position.x + icon_size / 2.0,
+                            icon_y + icon_size / 2.0,
+                        ),
                         marker_color,
                     );
                 }
@@ -48,13 +54,18 @@ pub fn render_sector(sector: &Sector) {
 
     // Base color based on ownership
     let base_color = match sector.control {
-        Some(FactionId::Faction1) => Color::from_rgba(100, 150, 255, 100),  // Blue
-        Some(FactionId::Faction2) => Color::from_rgba(255, 100, 100, 100),  // Red
-        Some(FactionId::Faction3) => Color::from_rgba(100, 255, 150, 100),  // Green
+        Some(FactionId::Faction1) => Color::from_rgba(100, 150, 255, 100), // Blue
+        Some(FactionId::Faction2) => Color::from_rgba(255, 100, 100, 100), // Red
+        Some(FactionId::Faction3) => Color::from_rgba(100, 255, 150, 100), // Green
         None => Color::from_rgba(128, 128, 128, 50),
     };
 
-    draw_circle(sector.position.x, sector.position.y, sector.radius, base_color);
+    draw_circle(
+        sector.position.x,
+        sector.position.y,
+        sector.radius,
+        base_color,
+    );
 
     // Outer ring shows ownership
     let ring_color = match sector.control {
@@ -113,9 +124,9 @@ pub fn render_squad(squad: &Squad) {
     use crate::types::FactionId;
 
     let squad_color = match squad.owner {
-        FactionId::Faction1 => Color::from_rgba(100, 150, 255, 255),  // Blue
-        FactionId::Faction2 => Color::from_rgba(255, 100, 100, 255),  // Red
-        FactionId::Faction3 => Color::from_rgba(100, 255, 150, 255),  // Green
+        FactionId::Faction1 => Color::from_rgba(100, 150, 255, 255), // Blue
+        FactionId::Faction2 => Color::from_rgba(255, 100, 100, 255), // Red
+        FactionId::Faction3 => Color::from_rgba(100, 255, 150, 255), // Green
     };
 
     for unit in &squad.units {

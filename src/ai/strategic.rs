@@ -5,12 +5,12 @@ use crate::types::*;
 
 /// Strategic analysis of the current battlefield state
 pub struct StrategicAnalysis {
-    pub faction_strength: [f32; 3],      // Military strength per faction
-    pub sector_control: [u32; 3],        // Number of sectors controlled
-    pub supply_advantage: [f32; 3],      // Supply advantage/disadvantage
-    pub threat_level: [f32; 3],          // Threat from each faction
+    pub faction_strength: [f32; 3],        // Military strength per faction
+    pub sector_control: [u32; 3],          // Number of sectors controlled
+    pub supply_advantage: [f32; 3],        // Supply advantage/disadvantage
+    pub threat_level: [f32; 3],            // Threat from each faction
     pub expansion_opportunities: Vec<u32>, // Sector IDs worth capturing
-    pub vulnerable_sectors: Vec<u32>,    // Our sectors under threat
+    pub vulnerable_sectors: Vec<u32>,      // Our sectors under threat
 }
 
 impl StrategicAnalysis {
@@ -103,7 +103,7 @@ impl StrategicAnalysis {
 
     /// Get the strongest enemy faction
     pub fn strongest_enemy(&self, our_faction: FactionId) -> FactionId {
-        let our_idx = our_faction.index();
+        let _our_idx = our_faction.index();
         let mut strongest = FactionId::Faction1;
         let mut max_strength = 0.0;
 

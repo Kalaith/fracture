@@ -37,7 +37,11 @@ impl FactionId {
     }
 
     pub fn all() -> [FactionId; 3] {
-        [FactionId::Faction1, FactionId::Faction2, FactionId::Faction3]
+        [
+            FactionId::Faction1,
+            FactionId::Faction2,
+            FactionId::Faction3,
+        ]
     }
 }
 
@@ -64,26 +68,26 @@ pub enum SquadOrder {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum UnitType {
     // Infantry
-    InfantryLight,  // 3 supply - cheap, fast, weak
-    InfantryHeavy,  // 8 supply - tough, versatile
+    InfantryLight, // 3 supply - cheap, fast, weak
+    InfantryHeavy, // 8 supply - tough, versatile
 
     // Armor
-    ArmorLight,     // 10 supply - mobile tank
-    ArmorHeavy,     // 15 supply - heavy tank, slow
+    ArmorLight, // 10 supply - mobile tank
+    ArmorHeavy, // 15 supply - heavy tank, slow
 
     // Artillery
-    Artillery,      // 20 supply - long range siege
+    Artillery, // 20 supply - long range siege
 
     // Drones
-    DroneScout,     // 5 supply - fast recon
-    DroneGunship,   // 12 supply - air support
+    DroneScout,   // 5 supply - fast recon
+    DroneGunship, // 12 supply - air support
 
     // Support
-    Engineer,       // 8 supply - repairs and builds
+    Engineer, // 8 supply - repairs and builds
 
     // Specialists
-    AntiArmor,      // 10 supply - counters heavy armor
-    AntiAir,        // 10 supply - counters drones
+    AntiArmor, // 10 supply - counters heavy armor
+    AntiAir,   // 10 supply - counters drones
 }
 
 impl UnitType {
@@ -211,11 +215,11 @@ impl UnitType {
 /// Commander type/archetype
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum CommanderType {
-    Vanguard,   // Frontline pressure
-    Engineer,   // Logistics and support
-    Control,    // Area denial
-    Disruptor,  // Sabotage and harassment
-    Wildcard,   // Experimental tactics
+    Vanguard,  // Frontline pressure
+    Engineer,  // Logistics and support
+    Control,   // Area denial
+    Disruptor, // Sabotage and harassment
+    Wildcard,  // Experimental tactics
 }
 
 impl CommanderType {
@@ -252,8 +256,8 @@ impl CommanderType {
     /// Get passive morale recovery bonus for this commander type (Phase 4)
     pub fn morale_recovery_bonus(&self) -> f32 {
         match self {
-            CommanderType::Engineer => 1.5,  // +50% morale recovery
-            CommanderType::Control => 1.2,   // +20% morale recovery
+            CommanderType::Engineer => 1.5, // +50% morale recovery
+            CommanderType::Control => 1.2,  // +20% morale recovery
             _ => 1.0,
         }
     }
@@ -309,16 +313,16 @@ impl Doctrine {
     pub fn synergy_with(&self, other: Doctrine) -> f32 {
         match (self, other) {
             // Offensive synergy: Aggressive + Shock Windows
-            (Doctrine::AggressivePosture, Doctrine::ShockWindows) |
-            (Doctrine::ShockWindows, Doctrine::AggressivePosture) => 1.15,
+            (Doctrine::AggressivePosture, Doctrine::ShockWindows)
+            | (Doctrine::ShockWindows, Doctrine::AggressivePosture) => 1.15,
 
             // Defensive synergy: Entrenched + Rapid Deployment
-            (Doctrine::EntrenchedAssault, Doctrine::RapidDeployment) |
-            (Doctrine::RapidDeployment, Doctrine::EntrenchedAssault) => 1.15,
+            (Doctrine::EntrenchedAssault, Doctrine::RapidDeployment)
+            | (Doctrine::RapidDeployment, Doctrine::EntrenchedAssault) => 1.15,
 
             // Economic synergy: Resource Efficiency + Rapid Deployment
-            (Doctrine::ResourceEfficiency, Doctrine::RapidDeployment) |
-            (Doctrine::RapidDeployment, Doctrine::ResourceEfficiency) => 1.1,
+            (Doctrine::ResourceEfficiency, Doctrine::RapidDeployment)
+            | (Doctrine::RapidDeployment, Doctrine::ResourceEfficiency) => 1.1,
 
             _ => 1.0,
         }
@@ -329,8 +333,8 @@ impl Doctrine {
     pub fn conflict_with(&self, other: Doctrine) -> f32 {
         match (self, other) {
             // Major conflict: Aggressive vs Entrenched (contradictory strategies)
-            (Doctrine::AggressivePosture, Doctrine::EntrenchedAssault) |
-            (Doctrine::EntrenchedAssault, Doctrine::AggressivePosture) => 0.85,
+            (Doctrine::AggressivePosture, Doctrine::EntrenchedAssault)
+            | (Doctrine::EntrenchedAssault, Doctrine::AggressivePosture) => 0.85,
 
             _ => 1.0,
         }
@@ -542,9 +546,19 @@ impl Commander {
             (Some(d1), Some(d2)) => {
                 let modifier = self.doctrine_modifier();
                 if modifier > 1.05 {
-                    Some(format!("Synergy: {:?} + {:?} (+{:.0}%)", d1, d2, (modifier - 1.0) * 100.0))
+                    Some(format!(
+                        "Synergy: {:?} + {:?} (+{:.0}%)",
+                        d1,
+                        d2,
+                        (modifier - 1.0) * 100.0
+                    ))
                 } else if modifier < 0.95 {
-                    Some(format!("Conflict: {:?} vs {:?} ({:.0}%)", d1, d2, (modifier - 1.0) * 100.0))
+                    Some(format!(
+                        "Conflict: {:?} vs {:?} ({:.0}%)",
+                        d1,
+                        d2,
+                        (modifier - 1.0) * 100.0
+                    ))
                 } else {
                     None
                 }
@@ -557,11 +571,11 @@ impl Commander {
 /// Sector type - determines strategic value and bonuses
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum SectorType {
-    Standard,      // No special bonus
-    SupplyDepot,   // +20 max supply when controlled
-    Fortified,     // +20% defense for units in sector
-    Industrial,    // -15% unit spawn time when controlled
-    HighGround,    // +15% damage for units in sector
+    Standard,    // No special bonus
+    SupplyDepot, // +20 max supply when controlled
+    Fortified,   // +20% defense for units in sector
+    Industrial,  // -15% unit spawn time when controlled
+    HighGround,  // +15% damage for units in sector
 }
 
 impl SectorType {
@@ -633,8 +647,8 @@ impl Sector {
 /// Strategic marker types for player intent
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum MarkerType {
-    Attack,  // Prioritize this sector for offensive
-    Defend,  // Prioritize this sector for defense
+    Attack, // Prioritize this sector for offensive
+    Defend, // Prioritize this sector for defense
 }
 
 /// Strategic marker placed by players on sectors

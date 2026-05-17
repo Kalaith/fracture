@@ -1,6 +1,5 @@
 //! Autonomous unit AI - squad behavior based on orders
 
-use crate::config::Config;
 use crate::types::*;
 use macroquad::prelude::*;
 
@@ -76,7 +75,12 @@ impl super::Simulation {
         self.ai_advance(unit, all_squads, sectors);
     }
 
-    pub(super) fn ai_skirmish(&mut self, unit: &mut Unit, all_squads: &[Squad], sectors: &[Sector]) {
+    pub(super) fn ai_skirmish(
+        &mut self,
+        unit: &mut Unit,
+        all_squads: &[Squad],
+        sectors: &[Sector],
+    ) {
         // Use same logic as advance - all units should be active
         self.ai_advance(unit, all_squads, sectors);
     }

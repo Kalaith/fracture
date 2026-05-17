@@ -48,7 +48,9 @@ impl super::Simulation {
                         if distance <= unit.unit_type.attack_range() {
                             // Calculate damage with variance
                             let variance = 1.0
-                                + (macroquad_toolkit::rng::rand() - 0.5) * 2.0 * Config::DAMAGE_VARIANCE;
+                                + (macroquad_toolkit::rng::rand() - 0.5)
+                                    * 2.0
+                                    * Config::DAMAGE_VARIANCE;
                             let mut damage = unit.unit_type.attack_damage() * variance;
 
                             // Apply counter bonus (Phase 4 counter system)
@@ -72,9 +74,10 @@ impl super::Simulation {
 
                             // Apply sector bonuses (Phase 4)
                             // HighGround: +15% damage if attacker is in high ground sector
-                            let in_high_ground = sectors
-                                .iter()
-                                .any(|s| s.contains_point(unit.position) && s.sector_type == SectorType::HighGround);
+                            let in_high_ground = sectors.iter().any(|s| {
+                                s.contains_point(unit.position)
+                                    && s.sector_type == SectorType::HighGround
+                            });
                             if in_high_ground {
                                 damage *= 1.15;
                             }
@@ -101,20 +104,21 @@ impl super::Simulation {
                 for (target_id, damage, _target_owner) in damage_queue.iter() {
                     if unit.id == *target_id {
                         // Apply defense modifiers based on DEFENDER's doctrines
-                        let mut defense_mult = if defender_commander.has_doctrine(Doctrine::EntrenchedAssault)
-                        {
-                            1.0 / Config::ENTRENCHED_DEFENSE_MULT
-                        } else if defender_commander.has_doctrine(Doctrine::AggressivePosture) {
-                            1.0 / Config::AGGRESSIVE_DAMAGE_MULT
-                        } else {
-                            1.0
-                        };
+                        let mut defense_mult =
+                            if defender_commander.has_doctrine(Doctrine::EntrenchedAssault) {
+                                1.0 / Config::ENTRENCHED_DEFENSE_MULT
+                            } else if defender_commander.has_doctrine(Doctrine::AggressivePosture) {
+                                1.0 / Config::AGGRESSIVE_DAMAGE_MULT
+                            } else {
+                                1.0
+                            };
 
                         // Apply sector bonuses (Phase 4)
                         // Fortified: +20% defense if defender is in fortified sector
-                        let in_fortified = sectors
-                            .iter()
-                            .any(|s| s.contains_point(unit.position) && s.sector_type == SectorType::Fortified);
+                        let in_fortified = sectors.iter().any(|s| {
+                            s.contains_point(unit.position)
+                                && s.sector_type == SectorType::Fortified
+                        });
                         if in_fortified {
                             defense_mult *= 0.8; // 20% damage reduction
                         }

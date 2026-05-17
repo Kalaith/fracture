@@ -38,7 +38,7 @@ impl InputHandler {
 
         // Squad selection and orders
         self.handle_squad_input(game, camera);
-        
+
         // Strategic markers
         self.handle_marker_input(game, camera);
     }
@@ -125,7 +125,10 @@ impl InputHandler {
         };
 
         if let Some(unit_type) = unit_type {
-            println!("Attempting to spawn {:?} for faction {:?}", unit_type, game.local_faction);
+            println!(
+                "Attempting to spawn {:?} for faction {:?}",
+                unit_type, game.local_faction
+            );
             // Spawn a squad of 3 units with Advance order by default
             let result = game.spawn_squad(game.local_faction, unit_type, 3, SquadOrder::Advance);
 
@@ -242,7 +245,9 @@ impl InputHandler {
             let world_pos = camera.screen_to_world(vec2(mouse_pos.0, mouse_pos.1));
 
             // Find clicked sector (store ID to avoid borrow issues)
-            let clicked_sector_id = game.sectors.iter()
+            let clicked_sector_id = game
+                .sectors
+                .iter()
                 .find(|sector| sector.contains_point(world_pos))
                 .map(|sector| sector.id);
 

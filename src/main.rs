@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 mod ai;
 mod config;
 mod data;
@@ -91,10 +93,10 @@ async fn main() {
 }
 
 /// Spawn initial units for all three factions to test the simulation
-fn spawn_initial_units(game: &mut GameState) {
+fn spawn_initial_units(_game: &mut GameState) {
     // Commented out - start with empty battlefield
     // Players can spawn their own units
-    
+
     // use types::{FactionId, SquadOrder, UnitType};
     //
     // // Faction 1 initial forces (Player)

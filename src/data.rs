@@ -409,7 +409,10 @@ fn build_lookup<T>(items: Vec<T>) -> HashMap<String, T>
 where
     T: HasId,
 {
-    items.into_iter().map(|item| (item.id().to_string(), item)).collect()
+    items
+        .into_iter()
+        .map(|item| (item.id().to_string(), item))
+        .collect()
 }
 
 /// Trait for items that have an ID field

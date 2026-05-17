@@ -118,11 +118,7 @@ impl CommanderAI {
         let squad = squad.unwrap();
 
         // Calculate squad health percentage
-        let avg_health: f32 = squad
-            .units
-            .iter()
-            .map(|u| u.health_percent())
-            .sum::<f32>()
+        let avg_health: f32 = squad.units.iter().map(|u| u.health_percent()).sum::<f32>()
             / squad.units.len().max(1) as f32;
 
         // Defensive behavior if squad is weak
