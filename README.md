@@ -1,36 +1,29 @@
 # Fracture Command
 
-**Genre:** Strategic Co-op War Simulation  
-*(Indirect RTS • Multi-Faction Conflict • Emergent Narrative)*
+Fracture Command is a large-scale cooperative strategy game where players act as commanders rather than micromanagers.
 
-## Overview
+Instead of ordering every unit by hand, commanders shape the war through doctrines, logistics, pressure, fortifications, and high-level decisions while autonomous forces carry out the conflict.
 
-Fracture Command is a large-scale cooperative strategy game where players take the role of commanders, not micromanagers. Instead of controlling individual units, players shape the battlefield through doctrines, logistics, and high-level orders while autonomous forces carry out the war.
+## Gameplay
 
-The conflict is not a simple two-sided battle. Multiple fractured coalitions clash simultaneously, forming unstable alliances, betrayals, and shifting fronts. Victory comes not from perfect micro, but from foresight, coordination, and knowing when to let the war burn.
+- Coordinate with other commanders on the same faction.
+- Choose a strategic role such as vanguard, logistics, control, disruptor, or wildcard.
+- Influence fronts through doctrine and battlefield priorities.
+- Respond to shifting alliances and multi-faction pressure.
+- Win through foresight, coordination, and timing rather than perfect unit control.
 
-## Core Features
+## Goal
 
-- **3–5 Commanders per faction**
-- **Up to three factions active on a battlefield**
-- **Asymmetric co-op across unstable alliances (e.g., 5v5v5)**
-- **No unit micromanagement**
+Lead your faction through unstable multi-sided war and make decisions that keep your coalition ahead as the battlefield changes.
 
-Players collaborate within a faction while reacting to two others doing the same. Every decision ripples across the conflict.
+## Commander Roles
 
-## Build and Run
+- Vanguard: frontline pressure.
+- Engineer / Logistics: repairs and supply flow.
+- Control: area denial and fortification.
+- Disruptor: sabotage and interference.
+- Wildcard: experimental tools and unexpected plays.
 
-This project is written in Rust. To run the game:
+## Current Scope
 
-```bash
-cargo run
-```
-
-## Commanders
-
-Each player controls a commander with a distinct strategic role:
-- **Vanguard:** Frontline pressure
-- **Engineer / Logistics:** Repairs, supply flow
-- **Control:** Area denial, fortifications
-- **Disruptor:** Sabotage, interference
-- **Wildcard:** Experimental tech, rule-benders
+Playable strategic-command concept focused on faction roles, autonomous forces, and large-scale battlefield decision-making.
