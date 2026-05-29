@@ -18,7 +18,7 @@ impl Config {
     pub const WORLD_HEIGHT: f32 = 1500.0;
 
     // Sector configuration
-    pub const NUM_SECTORS: u32 = 4;
+    pub const NUM_SECTORS: u32 = 5;
     pub const SECTOR_RADIUS: f32 = 150.0;
     pub const SECTOR_CAPTURE_RATE: f32 = 0.1; // Per second per unit nearby
 
@@ -58,8 +58,8 @@ impl Config {
     pub const UI_FONT_SIZE: f32 = 20.0;
 
     // Victory conditions
-    pub const VICTORY_SECTOR_CONTROL: u32 = 7; // Control all 7 sectors to win
-    pub const VICTORY_TIME_REQUIRED: f32 = 10.0; // Hold for 10 seconds
+    pub const VICTORY_SECTOR_CONTROL: u32 = 3; // Majority control on the 5-sector prototype map
+    pub const VICTORY_TIME_REQUIRED: f32 = 30.0; // Hold majority for 30 seconds
 }
 
 /// Faction spawn positions (3-faction layout) - closer together for more action
@@ -75,7 +75,7 @@ pub fn get_spawn_position(faction_id: crate::types::FactionId) -> Vec2 {
     }
 }
 
-/// Sector positions on battlefield (arranged for 3-faction play)
+/// Sector positions on battlefield for the 1v1 prototype.
 pub fn get_sector_positions() -> Vec<Vec2> {
     vec![
         // Central contested sector
@@ -86,8 +86,5 @@ pub fn get_sector_positions() -> Vec<Vec2> {
         // Faction 2 side sectors (right)
         vec2(Config::WORLD_WIDTH * 0.75, Config::WORLD_HEIGHT * 0.35),
         vec2(Config::WORLD_WIDTH * 0.75, Config::WORLD_HEIGHT * 0.65),
-        // Faction 3 side sectors (top)
-        vec2(Config::WORLD_WIDTH * 0.4, Config::WORLD_HEIGHT * 0.25),
-        vec2(Config::WORLD_WIDTH * 0.6, Config::WORLD_HEIGHT * 0.25),
     ]
 }

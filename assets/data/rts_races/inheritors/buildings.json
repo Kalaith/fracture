@@ -1,0 +1,122 @@
+{
+  "race_id": "inheritors",
+  "race_name": "The Inheritors",
+  "buildings": [
+    {
+      "id": "assimilation_core",
+      "name": "Assimilation Core",
+      "role": "main_base",
+      "tier": 1,
+      "cost": { "matter": 400, "aether": 0 },
+      "build_time": 68.0,
+      "health": 1650,
+      "armor": 3,
+      "footprint": { "width": 5, "height": 5 },
+      "supply_provided": 10,
+      "creep_radius": 9,
+      "requires": [],
+      "produces": ["scavenger_larva"],
+      "unlocks": ["feeding_node", "spawning_mass"],
+      "abilities": [
+        { "id": "store_memory", "name": "Store Memory", "type": "adaptation_storage" }
+      ],
+      "strategic_intent": "Main base that anchors economy and stores harvested traits."
+    },
+    {
+      "id": "feeding_node",
+      "name": "Feeding Node",
+      "role": "supply_regeneration",
+      "tier": 1,
+      "cost": { "matter": 85, "aether": 10 },
+      "build_time": 22.0,
+      "health": 430,
+      "armor": 1,
+      "footprint": { "width": 2, "height": 2 },
+      "supply_provided": 8,
+      "creep_radius": 5,
+      "requires": ["assimilation_core"],
+      "produces": [],
+      "unlocks": [],
+      "abilities": [
+        { "id": "local_regeneration", "name": "Local Regeneration", "type": "passive_heal" }
+      ],
+      "strategic_intent": "Supply structure that makes Inheritor territory feel alive and recoverable."
+    },
+    {
+      "id": "spawning_mass",
+      "name": "Spawning Mass",
+      "role": "basic_production",
+      "tier": 1,
+      "cost": { "matter": 150, "aether": 25 },
+      "build_time": 32.0,
+      "health": 720,
+      "armor": 1,
+      "footprint": { "width": 3, "height": 3 },
+      "supply_provided": 0,
+      "creep_radius": 6,
+      "requires": ["assimilation_core"],
+      "produces": ["ravager_strain", "echo_seer"],
+      "unlocks": ["frenzy_synapse"],
+      "abilities": [],
+      "strategic_intent": "Early pressure and scouting production structure."
+    },
+    {
+      "id": "memory_organ",
+      "name": "Memory Organ",
+      "role": "adaptation_tech",
+      "tier": 2,
+      "cost": { "matter": 160, "aether": 110 },
+      "build_time": 42.0,
+      "health": 650,
+      "armor": 1,
+      "footprint": { "width": 3, "height": 3 },
+      "supply_provided": 0,
+      "creep_radius": 6,
+      "requires": ["spawning_mass"],
+      "produces": ["null_siren"],
+      "unlocks": ["trait_memory", "null_resonance"],
+      "abilities": [
+        { "id": "analyze_trait", "name": "Analyze Trait", "type": "research" }
+      ],
+      "strategic_intent": "Core tech building that turns scouting and combat into faction scaling."
+    },
+    {
+      "id": "mimic_crucible",
+      "name": "Mimic Crucible",
+      "role": "adaptive_production",
+      "tier": 2,
+      "cost": { "matter": 190, "aether": 120 },
+      "build_time": 46.0,
+      "health": 780,
+      "armor": 2,
+      "footprint": { "width": 4, "height": 3 },
+      "supply_provided": 0,
+      "creep_radius": 7,
+      "requires": ["memory_organ"],
+      "produces": ["mirror_husk"],
+      "unlocks": ["adaptive_carapace", "borrowed_violence"],
+      "abilities": [],
+      "strategic_intent": "Production structure that makes the Inheritors' copied-answer identity real."
+    },
+    {
+      "id": "apex_broodspire",
+      "name": "Apex Broodspire",
+      "role": "late_game_mutation",
+      "tier": 3,
+      "cost": { "matter": 280, "aether": 250 },
+      "build_time": 66.0,
+      "health": 950,
+      "armor": 2,
+      "footprint": { "width": 4, "height": 4 },
+      "supply_provided": 0,
+      "creep_radius": 8,
+      "requires": ["mimic_crucible"],
+      "produces": ["devourer_engine"],
+      "unlocks": ["apex_inheritance"],
+      "abilities": [
+        { "id": "force_mutation", "name": "Force Mutation", "type": "late_game_research" }
+      ],
+      "strategic_intent": "Late-game structure for hybrid monsters and final adaptation upgrades."
+    }
+  ]
+}

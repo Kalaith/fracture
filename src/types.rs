@@ -607,7 +607,7 @@ pub struct Sector {
     pub position: Vec2,
     pub radius: f32,
     pub control: Option<FactionId>,
-    pub control_progress: f32, // -1.0 to 1.0 (Faction1 to Faction3)
+    pub control_progress: f32, // -1.0 to 1.0 (Faction1 to Faction2)
     pub sector_type: SectorType,
 }
 
@@ -637,8 +637,8 @@ impl Sector {
         self.control = FactionId::from_index((faction_index - 1) as usize);
         self.control_progress = match self.control {
             Some(FactionId::Faction1) => -1.0,
-            Some(FactionId::Faction2) => 0.0,
-            Some(FactionId::Faction3) => 1.0,
+            Some(FactionId::Faction2) => 1.0,
+            Some(FactionId::Faction3) => 0.0,
             None => 0.0,
         };
     }

@@ -1,0 +1,120 @@
+{
+  "race_id": "aetherborn",
+  "race_name": "Aetherborn Concord",
+  "buildings": [
+    {
+      "id": "heartwood_nexus",
+      "name": "Heartwood Nexus",
+      "role": "main_base",
+      "tier": 1,
+      "cost": { "matter": 400, "aether": 0 },
+      "build_time": 70.0,
+      "health": 1600,
+      "armor": 3,
+      "footprint": { "width": 5, "height": 5 },
+      "supply_provided": 10,
+      "influence_radius": 10,
+      "requires": [],
+      "produces": ["sprite_gatherer"],
+      "unlocks": ["moonwell", "grove_circle"],
+      "abilities": [
+        { "id": "recall_to_grove", "name": "Recall to Grove", "type": "defensive_recall" }
+      ],
+      "strategic_intent": "Primary economy anchor and safe point for fragile workers."
+    },
+    {
+      "id": "moonwell",
+      "name": "Moonwell",
+      "role": "supply_support",
+      "tier": 1,
+      "cost": { "matter": 90, "aether": 25 },
+      "build_time": 24.0,
+      "health": 450,
+      "armor": 1,
+      "footprint": { "width": 2, "height": 2 },
+      "supply_provided": 8,
+      "influence_radius": 5,
+      "requires": ["heartwood_nexus"],
+      "produces": [],
+      "unlocks": [],
+      "abilities": [
+        { "id": "minor_regrowth", "name": "Minor Regrowth", "type": "passive_heal" }
+      ],
+      "strategic_intent": "Supply building that also makes defended positions harder to dislodge."
+    },
+    {
+      "id": "grove_circle",
+      "name": "Grove Circle",
+      "role": "basic_production",
+      "tier": 1,
+      "cost": { "matter": 160, "aether": 40 },
+      "build_time": 36.0,
+      "health": 700,
+      "armor": 1,
+      "footprint": { "width": 3, "height": 3 },
+      "supply_provided": 0,
+      "influence_radius": 6,
+      "requires": ["heartwood_nexus"],
+      "produces": ["elven_warden", "grove_sentinel"],
+      "unlocks": ["living_bark"],
+      "abilities": [],
+      "strategic_intent": "Core military gateway for early defense and map control."
+    },
+    {
+      "id": "arcane_spire",
+      "name": "Arcane Spire",
+      "role": "caster_production",
+      "tier": 2,
+      "cost": { "matter": 150, "aether": 130 },
+      "build_time": 42.0,
+      "health": 600,
+      "armor": 0,
+      "footprint": { "width": 3, "height": 3 },
+      "supply_provided": 0,
+      "influence_radius": 6,
+      "requires": ["grove_circle"],
+      "produces": ["wizard_adept"],
+      "unlocks": ["silencing_glyphs", "ley_amplification"],
+      "abilities": [],
+      "strategic_intent": "Signals a spell-control tech path that opponents should scout."
+    },
+    {
+      "id": "unicorn_glade",
+      "name": "Unicorn Glade",
+      "role": "mobility_production",
+      "tier": 2,
+      "cost": { "matter": 180, "aether": 110 },
+      "build_time": 44.0,
+      "health": 750,
+      "armor": 1,
+      "footprint": { "width": 4, "height": 3 },
+      "supply_provided": 0,
+      "influence_radius": 7,
+      "requires": ["grove_circle"],
+      "produces": ["unicorn_lancer"],
+      "unlocks": ["radiant_charge"],
+      "abilities": [],
+      "strategic_intent": "Unlocks harassment, map mobility, and support cavalry."
+    },
+    {
+      "id": "elder_sanctum",
+      "name": "Elder Sanctum",
+      "role": "late_game_tech",
+      "tier": 3,
+      "cost": { "matter": 260, "aether": 260 },
+      "build_time": 64.0,
+      "health": 900,
+      "armor": 2,
+      "footprint": { "width": 4, "height": 4 },
+      "supply_provided": 0,
+      "influence_radius": 8,
+      "requires": ["arcane_spire", "unicorn_glade"],
+      "produces": ["archmage_avatar"],
+      "unlocks": ["astral_convergence", "elder_wards"],
+      "abilities": [
+        { "id": "begin_ritual", "name": "Begin Ritual", "type": "research" }
+      ],
+      "strategic_intent": "Late-game commitment that trades production tempo for decisive magic."
+    }
+  ]
+}

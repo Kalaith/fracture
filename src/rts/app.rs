@@ -1,0 +1,880 @@
+use super::{
+    BasicSkirmishAi, BuildingKind, EntityId, RaceId, ResourceNodeId, ResourceNodeKind,
+    RtsGameState, RtsMapDefinition, TechKind, UnitCommand, UnitKind, PLAYER_ONE, PLAYER_TWO,
+};
+use macroquad::prelude::*;
+use macroquad_toolkit::camera::Camera2D as ToolkitCamera;
+
+const CRASH_BASIN_JSON: &str = include_str!("../../assets/data/rts_maps/crash_basin_skirmish.json");
+const CAMERA_PAN_SPEED: f32 = 520.0;
+const CAMERA_ZOOM_SPEED: f32 = 0.12;
+const CAMERA_MIN_ZOOM: f32 = 0.55;
+const CAMERA_MAX_ZOOM: f32 = 2.2;
+const SELECT_UNIT_RADIUS: f32 = 18.0;
+const SELECT_BUILDING_RADIUS: f32 = 42.0;
+const SELECT_RESOURCE_RADIUS: f32 = 34.0;
+const AETHER_NODE_BUILD_RADIUS: f32 = 70.0;
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum BuildIntent {
+    Standard(BuildingKind),
+    LeyClaim,
+}
+
+pub struct RtsApp {
+    pub state: RtsGameState,
+    pub map: RtsMapDefinition,
+    pub local_player: usize,
+    ai: BasicSkirmishAi,
+    selected_units: Vec<EntityId>,
+    selected_building: Option<EntityId>,
+    pending_build: Option<BuildIntent>,
+    message: String,
+    message_timer: f32,
+}
+
+impl RtsApp {
+    pub fn new_crash_basin() -> Result<Self, String> {
+        Self::new_crash_basin_for(PLAYER_ONE)
+    }
+
+    pub fn new_crash_basin_for(local_player: usize) -> Result<Self, String> {
+        let map = RtsMapDefinition::from_json_str(CRASH_BASIN_JSON)
+            .map_err(|err| format!("Failed to parse Crash Basin RTS map: {}", err))?;
+        let state = RtsGameState::from_map_definition(&map)?;
+        let ai_player = opposing_player(local_player);
+
+        Ok(Self {
+            state,
+            map,
+            local_player,
+            ai: BasicSkirmishAi::new(ai_player),
+            selected_units: Vec::new(),
+            selected_building: None,
+            pending_build: None,
+            message: "Crash Basin loaded".to_string(),
+            message_timer: 3.0,
+        })
+    }
+
+    pub fn camera_center(&self) -> Vec2 {
+        self.state.map_size * 0.5
+    }
+
+    pub fn update(&mut self, camera: &mut ToolkitCamera, dt: f32) {
+        self.message_timer = (self.message_timer - dt).max(0.0);
+        self.refresh_selection();
+        self.handle_camera_input(camera, dt);
+        self.handle_mouse_input(camera);
+        self.handle_hotkeys(camera);
+
+        self.ai.update(&mut self.state, dt);
+        self.state.update(dt);
+    }
+
+    pub fn render(&self, camera: &ToolkitCamera) {
+        clear_background(Color::from_rgba(17, 20, 23, 255));
+        self.render_world(camera);
+        self.render_ui();
+    }
+
+    fn refresh_selection(&mut self) {
+        self.selected_units
+            .retain(|unit_id| self.state.units.iter().any(|unit| unit.id == *unit_id));
+
+        if let Some(building_id) = self.selected_building {
+            if self
+                .state
+                .buildings
+                .iter()
+                .all(|building| building.id != building_id)
+            {
+                self.selected_building = None;
+            }
+        }
+    }
+
+    fn handle_camera_input(&self, camera: &mut ToolkitCamera, dt: f32) {
+        let mut pan_direction = Vec2::ZERO;
+
+        if is_key_down(KeyCode::W) {
+            pan_direction.y -= 1.0;
+        }
+        if is_key_down(KeyCode::S) {
+            pan_direction.y += 1.0;
+        }
+        if is_key_down(KeyCode::A) {
+            pan_direction.x -= 1.0;
+        }
+        if is_key_down(KeyCode::D) {
+            pan_direction.x += 1.0;
+        }
+
+        if pan_direction != Vec2::ZERO {
+            camera.target += pan_direction.normalize() * CAMERA_PAN_SPEED * dt / camera.zoom;
+        }
+
+        let (_, wheel_y) = mouse_wheel();
+        if wheel_y != 0.0 {
+            let zoom_factor = 1.0 + wheel_y.signum() * CAMERA_ZOOM_SPEED;
+            camera.zoom = (camera.zoom * zoom_factor).clamp(CAMERA_MIN_ZOOM, CAMERA_MAX_ZOOM);
+        }
+
+        camera.update(dt, false);
+    }
+
+    fn handle_mouse_input(&mut self, camera: &ToolkitCamera) {
+        if is_mouse_button_pressed(MouseButton::Left) {
+            let world_pos = mouse_world(camera);
+            if self.place_pending_build(world_pos) {
+                return;
+            }
+
+            self.select_at(world_pos);
+        }
+
+        if is_mouse_button_pressed(MouseButton::Right) {
+            if self.pending_build.take().is_some() {
+                self.set_message("Build placement canceled");
+                return;
+            }
+
+            let world_pos = mouse_world(camera);
+            self.issue_right_click_order(world_pos);
+        }
+    }
+
+    fn select_at(&mut self, world_pos: Vec2) {
+        if let Some(unit_id) = self.find_local_unit_at(world_pos) {
+            self.selected_units.clear();
+            self.selected_units.push(unit_id);
+            self.selected_building = None;
+            self.set_message("Unit selected");
+            return;
+        }
+
+        if let Some(building_id) = self.find_local_building_at(world_pos) {
+            self.selected_units.clear();
+            self.selected_building = Some(building_id);
+            self.set_message("Building selected");
+            return;
+        }
+
+        self.selected_units.clear();
+        self.selected_building = None;
+    }
+
+    fn issue_right_click_order(&mut self, world_pos: Vec2) {
+        if self.selected_units.is_empty() {
+            return;
+        }
+
+        let selected_units = self.selected_units.clone();
+        if let Some(target_id) = self.find_enemy_unit_at(world_pos) {
+            for unit_id in selected_units {
+                let _ = self.state.command_attack_unit(unit_id, target_id);
+            }
+            self.set_message("Attack order issued");
+            return;
+        }
+
+        if let Some(target_id) = self.find_enemy_building_at(world_pos) {
+            for unit_id in selected_units {
+                let _ = self.state.command_attack_building(unit_id, target_id);
+            }
+            self.set_message("Attack building order issued");
+            return;
+        }
+
+        if let Some(node_id) = self.find_matter_node_at(world_pos) {
+            let workers: Vec<EntityId> = self
+                .selected_units
+                .iter()
+                .copied()
+                .filter(|unit_id| {
+                    self.state
+                        .units
+                        .iter()
+                        .find(|unit| unit.id == *unit_id)
+                        .is_some_and(|unit| unit.kind.is_worker())
+                })
+                .collect();
+
+            if !workers.is_empty() {
+                for unit_id in workers {
+                    let _ = self.state.command_gather_matter(unit_id, node_id);
+                }
+                self.set_message("Gather order issued");
+                return;
+            }
+        }
+
+        for unit_id in selected_units {
+            let _ = self.state.command_attack_move_unit(unit_id, world_pos);
+        }
+        self.set_message("Move order issued");
+    }
+
+    fn handle_hotkeys(&mut self, camera: &ToolkitCamera) {
+        let _ = camera;
+
+        if is_key_pressed(KeyCode::Z) {
+            self.start_build_placement(BuildIntent::Standard(supply_building_for(
+                self.local_race(),
+            )));
+        }
+        if is_key_pressed(KeyCode::X) {
+            self.start_build_placement(BuildIntent::Standard(production_building_for(
+                self.local_race(),
+            )));
+        }
+        if is_key_pressed(KeyCode::C) {
+            self.start_build_placement(BuildIntent::LeyClaim);
+        }
+        if is_key_pressed(KeyCode::V) {
+            self.start_build_placement(BuildIntent::Standard(aether_link_building_for(
+                self.local_race(),
+            )));
+        }
+
+        if is_key_pressed(KeyCode::Q) {
+            self.try_train(worker_unit_for(self.local_race()));
+        }
+        if is_key_pressed(KeyCode::T) {
+            self.try_train(combat_unit_for(self.local_race()));
+        }
+        if is_key_pressed(KeyCode::R) {
+            self.try_research(race_tech_for(self.local_race()));
+        }
+        if is_key_pressed(KeyCode::F5) {
+            self.restart_as(opposing_player(self.local_player));
+        }
+    }
+
+    fn start_build_placement(&mut self, intent: BuildIntent) {
+        if self.selected_worker().is_none() {
+            self.set_message("Select a worker, then choose a build command");
+            return;
+        }
+
+        self.pending_build = Some(intent);
+        match intent {
+            BuildIntent::Standard(kind) => self.set_message(&format!(
+                "Placing {:?}: left-click map to build, right-click to cancel",
+                kind
+            )),
+            BuildIntent::LeyClaim => {
+                self.set_message("Placing ley claim: left-click a ley node, right-click to cancel")
+            }
+        }
+    }
+
+    fn place_pending_build(&mut self, position: Vec2) -> bool {
+        let Some(intent) = self.pending_build else {
+            return false;
+        };
+
+        match intent {
+            BuildIntent::Standard(kind) => {
+                if self.try_build(kind, position) {
+                    self.pending_build = None;
+                }
+            }
+            BuildIntent::LeyClaim => {
+                if self.try_build_ley_claim(position) {
+                    self.pending_build = None;
+                }
+            }
+        }
+
+        true
+    }
+
+    fn restart_as(&mut self, local_player: usize) {
+        match Self::new_crash_basin_for(local_player) {
+            Ok(app) => *self = app,
+            Err(err) => self.set_message(&format!("Restart failed: {}", err)),
+        }
+    }
+
+    fn try_build(&mut self, building_kind: BuildingKind, position: Vec2) -> bool {
+        let Some(worker_id) = self.selected_worker() else {
+            self.set_message("Select a worker first");
+            return false;
+        };
+
+        match self
+            .state
+            .start_construction(worker_id, building_kind, position)
+        {
+            Ok(_) => {
+                self.set_message("Construction started");
+                true
+            }
+            Err(err) => {
+                self.set_message(&format!("Build failed: {:?}", err));
+                false
+            }
+        }
+    }
+
+    fn try_build_ley_claim(&mut self, position: Vec2) -> bool {
+        let Some(worker_id) = self.selected_worker() else {
+            self.set_message("Select a worker first");
+            return false;
+        };
+        let Some(node_id) = self.find_ley_node_near(position) else {
+            self.set_message("Point at a ley node first");
+            return false;
+        };
+
+        let building_kind = ley_claim_building_for(self.local_race());
+        match self
+            .state
+            .start_construction_on_resource_node(worker_id, building_kind, node_id)
+        {
+            Ok(_) => {
+                self.set_message("Ley claim started");
+                true
+            }
+            Err(err) => {
+                self.set_message(&format!("Ley claim failed: {:?}", err));
+                false
+            }
+        }
+    }
+
+    fn try_train(&mut self, unit_kind: UnitKind) {
+        let Some(building_id) = self.selected_building else {
+            self.set_message("Select a production building first");
+            return;
+        };
+
+        match self.state.train_unit(building_id, unit_kind) {
+            Ok(_) => self.set_message("Training queued"),
+            Err(err) => self.set_message(&format!("Training failed: {:?}", err)),
+        }
+    }
+
+    fn try_research(&mut self, tech_kind: TechKind) {
+        let Some(building_id) = self.selected_building else {
+            self.set_message("Select a tech building first");
+            return;
+        };
+
+        match self.state.research_tech(building_id, tech_kind) {
+            Ok(_) => self.set_message("Research queued"),
+            Err(err) => self.set_message(&format!("Research failed: {:?}", err)),
+        }
+    }
+
+    fn selected_worker(&self) -> Option<EntityId> {
+        self.selected_units.iter().copied().find(|unit_id| {
+            self.state
+                .units
+                .iter()
+                .find(|unit| unit.id == *unit_id)
+                .is_some_and(|unit| unit.owner == self.local_player && unit.kind.is_worker())
+        })
+    }
+
+    fn local_race(&self) -> RaceId {
+        self.state.players[self.local_player].race
+    }
+
+    fn set_message(&mut self, message: &str) {
+        self.message.clear();
+        self.message.push_str(message);
+        self.message_timer = 3.0;
+    }
+
+    fn render_world(&self, camera: &ToolkitCamera) {
+        camera.begin();
+
+        draw_rectangle_lines(
+            0.0,
+            0.0,
+            self.state.map_size.x,
+            self.state.map_size.y,
+            3.0,
+            Color::from_rgba(77, 88, 96, 255),
+        );
+
+        self.render_map_features();
+        self.render_buildings();
+        self.render_units();
+        self.render_build_preview(camera);
+
+        set_default_camera();
+    }
+
+    fn render_map_features(&self) {
+        for segment in &self.map.ley_segments {
+            let Some(from) = self
+                .map
+                .ley_nodes
+                .iter()
+                .find(|node| node.id == segment.from)
+                .map(|node| node.position)
+            else {
+                continue;
+            };
+            let Some(to) = self
+                .map
+                .ley_nodes
+                .iter()
+                .find(|node| node.id == segment.to)
+                .map(|node| node.position)
+            else {
+                continue;
+            };
+
+            draw_line(
+                from.x,
+                from.y,
+                to.x,
+                to.y,
+                3.0,
+                Color::from_rgba(78, 178, 210, 150),
+            );
+        }
+
+        for node in &self.state.resource_nodes {
+            match node.kind {
+                ResourceNodeKind::Matter => {
+                    draw_circle(
+                        node.position.x,
+                        node.position.y,
+                        24.0,
+                        Color::from_rgba(130, 148, 120, 255),
+                    );
+                    draw_circle_lines(node.position.x, node.position.y, 26.0, 2.0, DARKGREEN);
+                }
+                ResourceNodeKind::Ley => {
+                    draw_circle(
+                        node.position.x,
+                        node.position.y,
+                        20.0,
+                        Color::from_rgba(54, 165, 217, 210),
+                    );
+                    draw_circle_lines(node.position.x, node.position.y, 28.0, 2.0, SKYBLUE);
+                }
+            }
+        }
+    }
+
+    fn render_buildings(&self) {
+        for building in &self.state.buildings {
+            let color = owner_color(building.owner);
+            let size = building_size(building.kind);
+            let top_left = building.position - size * 0.5;
+
+            draw_rectangle(top_left.x, top_left.y, size.x, size.y, color);
+            draw_rectangle_lines(top_left.x, top_left.y, size.x, size.y, 2.0, BLACK);
+
+            if self.selected_building == Some(building.id) {
+                draw_rectangle_lines(
+                    top_left.x - 4.0,
+                    top_left.y - 4.0,
+                    size.x + 8.0,
+                    size.y + 8.0,
+                    3.0,
+                    YELLOW,
+                );
+            }
+
+            let label = building_label(building.kind);
+            draw_text(label, top_left.x, top_left.y - 8.0, 18.0, WHITE);
+            draw_health_bar(
+                top_left + vec2(0.0, size.y + 5.0),
+                size.x,
+                building.health,
+                building.kind.max_health(),
+            );
+        }
+    }
+
+    fn render_units(&self) {
+        for unit in &self.state.units {
+            let color = owner_color(unit.owner);
+            let radius = unit_radius(unit.kind);
+            draw_circle(unit.position.x, unit.position.y, radius, color);
+            draw_circle_lines(unit.position.x, unit.position.y, radius, 2.0, BLACK);
+
+            if self.selected_units.contains(&unit.id) {
+                draw_circle_lines(unit.position.x, unit.position.y, radius + 5.0, 3.0, YELLOW);
+            }
+
+            let stats = self.state.unit_stats_for_player(unit.owner, unit.kind);
+            draw_health_bar(
+                unit.position + vec2(-18.0, radius + 6.0),
+                36.0,
+                unit.health,
+                stats.max_health as f32,
+            );
+
+            if matches!(
+                unit.command,
+                UnitCommand::AttackBuilding(_) | UnitCommand::AttackUnit(_)
+            ) {
+                draw_circle_lines(unit.position.x, unit.position.y, radius + 9.0, 1.5, ORANGE);
+            }
+        }
+    }
+
+    fn render_build_preview(&self, camera: &ToolkitCamera) {
+        let Some(intent) = self.pending_build else {
+            return;
+        };
+
+        let world_pos = mouse_world(camera);
+        match intent {
+            BuildIntent::Standard(kind) => {
+                let size = building_size(kind);
+                let top_left = world_pos - size * 0.5;
+                draw_rectangle(
+                    top_left.x,
+                    top_left.y,
+                    size.x,
+                    size.y,
+                    Color::from_rgba(240, 220, 90, 80),
+                );
+                draw_rectangle_lines(top_left.x, top_left.y, size.x, size.y, 2.0, YELLOW);
+            }
+            BuildIntent::LeyClaim => {
+                draw_circle_lines(
+                    world_pos.x,
+                    world_pos.y,
+                    AETHER_NODE_BUILD_RADIUS,
+                    2.0,
+                    YELLOW,
+                );
+            }
+        }
+    }
+
+    fn render_ui(&self) {
+        let panel_height = 116.0;
+        draw_rectangle(
+            0.0,
+            0.0,
+            screen_width(),
+            panel_height,
+            Color::from_rgba(20, 24, 28, 235),
+        );
+
+        let player = &self.state.players[self.local_player];
+        let title = format!(
+            "Fracture Command RTS - {} | Matter {}  Aether {}  Supply {}/{}  Flow {}",
+            race_label(player.race),
+            player.resources.matter,
+            player.resources.aether,
+            player.supply_used,
+            player.supply_cap,
+            player.ley_flow_capacity
+        );
+        draw_text(&title, 18.0, 30.0, 24.0, WHITE);
+
+        let selection = self.selection_label();
+        draw_text(
+            &selection,
+            18.0,
+            58.0,
+            20.0,
+            Color::from_rgba(220, 226, 230, 255),
+        );
+
+        let controls = self.controls_text();
+        draw_text(
+            &controls,
+            18.0,
+            88.0,
+            18.0,
+            Color::from_rgba(185, 194, 201, 255),
+        );
+
+        if self.message_timer > 0.0 {
+            draw_text(
+                &self.message,
+                18.0,
+                panel_height + 28.0,
+                22.0,
+                Color::from_rgba(250, 230, 130, 255),
+            );
+        }
+
+        if let Some(winner) = self.state.winner {
+            let text = if winner == self.local_player {
+                "Victory"
+            } else {
+                "Defeat"
+            };
+            let dims = measure_text(text, None, 64, 1.0);
+            draw_rectangle(
+                screen_width() * 0.5 - 210.0,
+                screen_height() * 0.5 - 70.0,
+                420.0,
+                130.0,
+                Color::from_rgba(10, 12, 14, 230),
+            );
+            draw_text(
+                text,
+                screen_width() * 0.5 - dims.width * 0.5,
+                screen_height() * 0.5 + 18.0,
+                64.0,
+                WHITE,
+            );
+        }
+    }
+
+    fn selection_label(&self) -> String {
+        if let Some(intent) = self.pending_build {
+            return match intent {
+                BuildIntent::Standard(kind) => {
+                    format!("Placing {:?}: left-click map to build", kind)
+                }
+                BuildIntent::LeyClaim => "Placing ley claim: left-click a ley node".to_string(),
+            };
+        }
+
+        if !self.selected_units.is_empty() {
+            return format!("Selected units: {}", self.selected_units.len());
+        }
+
+        if let Some(building_id) = self.selected_building {
+            if let Some(building) = self
+                .state
+                .buildings
+                .iter()
+                .find(|building| building.id == building_id)
+            {
+                return format!("Selected building: {:?}", building.kind);
+            }
+        }
+
+        "No selection".to_string()
+    }
+
+    fn controls_text(&self) -> String {
+        if self.pending_build.is_some() {
+            return "Build placement: left-click to place | right-click cancel | WASD pan"
+                .to_string();
+        }
+
+        if self.selected_worker().is_some() {
+            let race = self.local_race();
+            return format!(
+                "Worker build: Z {:?}, X {:?}, C {:?}, V {:?} | then left-click placement | right-click move/gather/attack",
+                supply_building_for(race),
+                production_building_for(race),
+                ley_claim_building_for(race),
+                aether_link_building_for(race)
+            );
+        }
+
+        if self.selected_building.is_some() {
+            return "Building commands: Q train worker | T train combat unit | R research tech | F5 switch race"
+                .to_string();
+        }
+
+        "Left select worker/building | right-click move/attack/gather | F5 switch race | WASD pan"
+            .to_string()
+    }
+
+    fn find_local_unit_at(&self, position: Vec2) -> Option<EntityId> {
+        self.state
+            .units
+            .iter()
+            .find(|unit| {
+                unit.owner == self.local_player
+                    && unit.position.distance(position) <= SELECT_UNIT_RADIUS
+            })
+            .map(|unit| unit.id)
+    }
+
+    fn find_enemy_unit_at(&self, position: Vec2) -> Option<EntityId> {
+        self.state
+            .units
+            .iter()
+            .find(|unit| {
+                unit.owner != self.local_player
+                    && unit.position.distance(position) <= SELECT_UNIT_RADIUS
+            })
+            .map(|unit| unit.id)
+    }
+
+    fn find_local_building_at(&self, position: Vec2) -> Option<EntityId> {
+        self.state
+            .buildings
+            .iter()
+            .find(|building| {
+                building.owner == self.local_player
+                    && building.position.distance(position) <= SELECT_BUILDING_RADIUS
+            })
+            .map(|building| building.id)
+    }
+
+    fn find_enemy_building_at(&self, position: Vec2) -> Option<EntityId> {
+        self.state
+            .buildings
+            .iter()
+            .find(|building| {
+                building.owner != self.local_player
+                    && building.position.distance(position) <= SELECT_BUILDING_RADIUS
+            })
+            .map(|building| building.id)
+    }
+
+    fn find_matter_node_at(&self, position: Vec2) -> Option<ResourceNodeId> {
+        self.state
+            .resource_nodes
+            .iter()
+            .find(|node| {
+                node.kind == ResourceNodeKind::Matter
+                    && node.position.distance(position) <= SELECT_RESOURCE_RADIUS
+            })
+            .map(|node| node.id)
+    }
+
+    fn find_ley_node_near(&self, position: Vec2) -> Option<ResourceNodeId> {
+        self.state
+            .resource_nodes
+            .iter()
+            .find(|node| {
+                node.kind == ResourceNodeKind::Ley
+                    && node.position.distance(position) <= AETHER_NODE_BUILD_RADIUS
+            })
+            .map(|node| node.id)
+    }
+}
+
+fn mouse_world(camera: &ToolkitCamera) -> Vec2 {
+    let mouse = mouse_position();
+    camera.screen_to_world(vec2(mouse.0, mouse.1))
+}
+
+fn owner_color(owner: usize) -> Color {
+    match owner {
+        PLAYER_ONE => Color::from_rgba(92, 178, 125, 255),
+        PLAYER_TWO => Color::from_rgba(90, 150, 220, 255),
+        _ => GRAY,
+    }
+}
+
+fn race_label(race: RaceId) -> &'static str {
+    match race {
+        RaceId::Aetherborn => "Aetherborn Concord",
+        RaceId::Terran => "Terran Directorate",
+    }
+}
+
+fn building_label(kind: BuildingKind) -> &'static str {
+    match kind {
+        BuildingKind::HeartwoodNexus => "Nexus",
+        BuildingKind::CommandArk => "Ark",
+        BuildingKind::Moonwell => "Moonwell",
+        BuildingKind::SupplyPylon => "Pylon",
+        BuildingKind::GroveCircle => "Grove",
+        BuildingKind::FabricatorBay => "Fab",
+        BuildingKind::LeyShrine => "Shrine",
+        BuildingKind::RitualNode => "Node",
+        BuildingKind::AetherExtractorRig => "Rig",
+        BuildingKind::BatteryDepot => "Depot",
+    }
+}
+
+fn building_size(kind: BuildingKind) -> Vec2 {
+    match kind {
+        BuildingKind::HeartwoodNexus | BuildingKind::CommandArk => vec2(70.0, 58.0),
+        BuildingKind::GroveCircle | BuildingKind::FabricatorBay => vec2(58.0, 46.0),
+        BuildingKind::Moonwell | BuildingKind::SupplyPylon => vec2(44.0, 38.0),
+        BuildingKind::LeyShrine | BuildingKind::AetherExtractorRig => vec2(42.0, 42.0),
+        BuildingKind::RitualNode | BuildingKind::BatteryDepot => vec2(38.0, 34.0),
+    }
+}
+
+fn unit_radius(kind: UnitKind) -> f32 {
+    match kind {
+        UnitKind::SpriteGatherer | UnitKind::FieldEngineer => 9.0,
+        UnitKind::ElvenWarden | UnitKind::RangerTrooper => 12.0,
+    }
+}
+
+fn draw_health_bar(top_left: Vec2, width: f32, health: f32, max_health: f32) {
+    let pct = if max_health <= 0.0 {
+        0.0
+    } else {
+        (health / max_health).clamp(0.0, 1.0)
+    };
+    draw_rectangle(
+        top_left.x,
+        top_left.y,
+        width,
+        5.0,
+        Color::from_rgba(35, 37, 39, 255),
+    );
+    draw_rectangle(
+        top_left.x,
+        top_left.y,
+        width * pct,
+        5.0,
+        Color::from_rgba(75, 220, 105, 255),
+    );
+}
+
+fn supply_building_for(race: RaceId) -> BuildingKind {
+    match race {
+        RaceId::Aetherborn => BuildingKind::Moonwell,
+        RaceId::Terran => BuildingKind::SupplyPylon,
+    }
+}
+
+fn production_building_for(race: RaceId) -> BuildingKind {
+    match race {
+        RaceId::Aetherborn => BuildingKind::GroveCircle,
+        RaceId::Terran => BuildingKind::FabricatorBay,
+    }
+}
+
+fn ley_claim_building_for(race: RaceId) -> BuildingKind {
+    match race {
+        RaceId::Aetherborn => BuildingKind::LeyShrine,
+        RaceId::Terran => BuildingKind::AetherExtractorRig,
+    }
+}
+
+fn aether_link_building_for(race: RaceId) -> BuildingKind {
+    match race {
+        RaceId::Aetherborn => BuildingKind::RitualNode,
+        RaceId::Terran => BuildingKind::BatteryDepot,
+    }
+}
+
+fn worker_unit_for(race: RaceId) -> UnitKind {
+    match race {
+        RaceId::Aetherborn => UnitKind::SpriteGatherer,
+        RaceId::Terran => UnitKind::FieldEngineer,
+    }
+}
+
+fn combat_unit_for(race: RaceId) -> UnitKind {
+    match race {
+        RaceId::Aetherborn => UnitKind::ElvenWarden,
+        RaceId::Terran => UnitKind::RangerTrooper,
+    }
+}
+
+fn race_tech_for(race: RaceId) -> TechKind {
+    match race {
+        RaceId::Aetherborn => TechKind::LivingBark,
+        RaceId::Terran => TechKind::StabilizedBarrels,
+    }
+}
+
+fn opposing_player(player_id: usize) -> usize {
+    if player_id == PLAYER_ONE {
+        PLAYER_TWO
+    } else {
+        PLAYER_ONE
+    }
+}

@@ -1,0 +1,137 @@
+{
+  "race_id": "inheritors",
+  "race_name": "The Inheritors",
+  "units": [
+    {
+      "id": "scavenger_larva",
+      "name": "Scavenger Larva",
+      "role": "worker",
+      "tier": 1,
+      "cost": { "matter": 45, "aether": 0 },
+      "supply": 1,
+      "build_time": 10.0,
+      "produced_by": ["assimilation_core"],
+      "requires": [],
+      "stats": { "health": 50, "armor": 0, "move_speed": 62, "sight_range": 8 },
+      "weapons": [
+        { "id": "mandibles", "damage": 4, "range": 1, "cooldown": 0.9, "type": "melee" }
+      ],
+      "abilities": [
+        { "id": "gather", "name": "Gather", "type": "economy" },
+        { "id": "grow_biomass", "name": "Grow Biomass", "type": "build" },
+        { "id": "consume_remains", "name": "Consume Remains", "type": "adaptation" }
+      ],
+      "counters": [],
+      "countered_by": ["raiders", "area_damage"],
+      "strategic_intent": "Worker that also supports the faction's battlefield harvesting loop."
+    },
+    {
+      "id": "ravager_strain",
+      "name": "Ravager Strain",
+      "role": "melee_swarm",
+      "tier": 1,
+      "cost": { "matter": 60, "aether": 0 },
+      "supply": 1,
+      "build_time": 14.0,
+      "produced_by": ["spawning_mass"],
+      "requires": [],
+      "stats": { "health": 65, "armor": 0, "move_speed": 72, "sight_range": 8 },
+      "weapons": [
+        { "id": "rending_claws", "damage": 7, "range": 1, "cooldown": 0.6, "type": "melee" }
+      ],
+      "abilities": [
+        { "id": "feeding_frenzy", "name": "Feeding Frenzy", "type": "snowball" }
+      ],
+      "counters": ["workers", "artillery", "isolated_units"],
+      "countered_by": ["area_damage", "armored_frontline"],
+      "strategic_intent": "Cheap pressure unit that forces opponents to respect early defense."
+    },
+    {
+      "id": "echo_seer",
+      "name": "Echo Seer",
+      "role": "scout_adaptation",
+      "tier": 1,
+      "cost": { "matter": 70, "aether": 35 },
+      "supply": 2,
+      "build_time": 20.0,
+      "produced_by": ["spawning_mass"],
+      "requires": ["memory_organ"],
+      "stats": { "health": 70, "armor": 0, "move_speed": 68, "sight_range": 14 },
+      "weapons": [
+        { "id": "psychic_spike", "damage": 6, "range": 5, "cooldown": 1.0, "type": "psionic" }
+      ],
+      "abilities": [
+        { "id": "scan_trait", "name": "Scan Trait", "type": "adaptation_scout" }
+      ],
+      "counters": ["hidden_tech", "unscouted_expansions"],
+      "countered_by": ["fast_raiders", "anti_caster"],
+      "strategic_intent": "Lets the Inheritors learn enemy composition without winning a fight first."
+    },
+    {
+      "id": "mirror_husk",
+      "name": "Mirror Husk",
+      "role": "adaptive_frontline",
+      "tier": 2,
+      "cost": { "matter": 130, "aether": 60 },
+      "supply": 3,
+      "build_time": 28.0,
+      "produced_by": ["mimic_crucible"],
+      "requires": ["mimic_crucible"],
+      "stats": { "health": 180, "armor": 2, "move_speed": 44, "sight_range": 9 },
+      "weapons": [
+        { "id": "borrowed_profile", "damage": 16, "range": 4, "cooldown": 1.0, "type": "adaptive" }
+      ],
+      "abilities": [
+        { "id": "inherit_armor", "name": "Inherit Armor", "type": "adaptation" },
+        { "id": "inherit_weapon", "name": "Inherit Weapon", "type": "adaptation" }
+      ],
+      "counters": ["known_enemy_compositions"],
+      "countered_by": ["mixed_damage", "hard_counters"],
+      "strategic_intent": "Core adaptive unit that changes based on what the player has scouted or consumed."
+    },
+    {
+      "id": "null_siren",
+      "name": "Null Siren",
+      "role": "disruptor",
+      "tier": 2,
+      "cost": { "matter": 90, "aether": 120 },
+      "supply": 3,
+      "build_time": 34.0,
+      "produced_by": ["memory_organ"],
+      "requires": ["memory_organ", "null_resonance"],
+      "stats": { "health": 95, "armor": 0, "move_speed": 50, "sight_range": 11 },
+      "weapons": [
+        { "id": "null_pulse", "damage": 10, "range": 6, "cooldown": 1.2, "type": "disruption" }
+      ],
+      "abilities": [
+        { "id": "dampen_magic", "name": "Dampen Magic", "type": "anti_magic" },
+        { "id": "collapse_shields", "name": "Collapse Shields", "type": "anti_shield" }
+      ],
+      "counters": ["casters", "shield_units", "spell_defenses"],
+      "countered_by": ["snipers", "fast_melee"],
+      "strategic_intent": "Gives the Inheritors a readable response to both magic and hardlight."
+    },
+    {
+      "id": "devourer_engine",
+      "name": "Devourer Engine",
+      "role": "late_game_hybrid",
+      "tier": 3,
+      "cost": { "matter": 300, "aether": 220 },
+      "supply": 8,
+      "build_time": 64.0,
+      "produced_by": ["apex_broodspire"],
+      "requires": ["apex_broodspire", "apex_inheritance"],
+      "stats": { "health": 480, "armor": 5, "move_speed": 34, "sight_range": 12 },
+      "weapons": [
+        { "id": "assimilated_barrage", "damage": 32, "range": 7, "cooldown": 1.6, "type": "hybrid" }
+      ],
+      "abilities": [
+        { "id": "devour_trait", "name": "Devour Trait", "type": "adaptation" },
+        { "id": "adaptive_shell", "name": "Adaptive Shell", "type": "defense" }
+      ],
+      "counters": ["single_damage_armies", "static_positions"],
+      "countered_by": ["focused_anti_heavy", "control_spells", "siege"],
+      "strategic_intent": "Late-game payoff for successful adaptation and battlefield harvesting."
+    }
+  ]
+}

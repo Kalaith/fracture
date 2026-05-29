@@ -1,0 +1,98 @@
+{
+  "race_id": "inheritors",
+  "race_name": "The Inheritors",
+  "tech": [
+    {
+      "id": "frenzy_synapse",
+      "name": "Frenzy Synapse",
+      "tier": 1,
+      "cost": { "matter": 100, "aether": 35 },
+      "research_time": 32.0,
+      "researched_at": "spawning_mass",
+      "requires": ["spawning_mass"],
+      "affects": ["ravager_strain"],
+      "effects": [
+        { "type": "stat_bonus", "stat": "move_speed_percent", "value": 10 },
+        { "type": "unlock_ability", "ability": "feeding_frenzy" }
+      ],
+      "strategic_intent": "Improves early pressure without helping the faction turtle."
+    },
+    {
+      "id": "trait_memory",
+      "name": "Trait Memory",
+      "tier": 2,
+      "cost": { "matter": 110, "aether": 120 },
+      "research_time": 42.0,
+      "researched_at": "memory_organ",
+      "requires": ["memory_organ"],
+      "affects": ["echo_seer", "assimilation_core"],
+      "effects": [
+        { "type": "unlock_resource", "resource": "trait_samples" },
+        { "type": "stat_bonus", "stat": "trait_storage_slots", "value": 2 }
+      ],
+      "strategic_intent": "Turns adaptation from flavor into a managed strategic resource."
+    },
+    {
+      "id": "null_resonance",
+      "name": "Null Resonance",
+      "tier": 2,
+      "cost": { "matter": 90, "aether": 150 },
+      "research_time": 44.0,
+      "researched_at": "memory_organ",
+      "requires": ["memory_organ"],
+      "affects": ["null_siren"],
+      "effects": [
+        { "type": "unlock_unit", "unit": "null_siren" },
+        { "type": "unlock_ability", "ability": "collapse_shields" },
+        { "type": "unlock_ability", "ability": "dampen_magic" }
+      ],
+      "strategic_intent": "Explicit response to Aetherborn spells and human hardlight."
+    },
+    {
+      "id": "adaptive_carapace",
+      "name": "Adaptive Carapace",
+      "tier": 2,
+      "cost": { "matter": 130, "aether": 110 },
+      "research_time": 45.0,
+      "researched_at": "mimic_crucible",
+      "requires": ["mimic_crucible", "trait_memory"],
+      "affects": ["mirror_husk", "devourer_engine"],
+      "effects": [
+        { "type": "conditional_resistance", "trigger": "recent_damage_type", "value": 20 },
+        { "type": "stat_bonus", "stat": "health_percent", "value": 8 }
+      ],
+      "strategic_intent": "Rewards the Inheritor player for taking repeated fights and reading enemy damage types."
+    },
+    {
+      "id": "borrowed_violence",
+      "name": "Borrowed Violence",
+      "tier": 2,
+      "cost": { "matter": 150, "aether": 130 },
+      "research_time": 48.0,
+      "researched_at": "mimic_crucible",
+      "requires": ["mimic_crucible", "trait_memory"],
+      "affects": ["mirror_husk"],
+      "effects": [
+        { "type": "unlock_ability", "ability": "inherit_weapon" },
+        { "type": "stat_bonus", "stat": "adaptive_damage_percent", "value": 15 }
+      ],
+      "strategic_intent": "Lets Mirror Husks become a targeted answer instead of generic bruisers."
+    },
+    {
+      "id": "apex_inheritance",
+      "name": "Apex Inheritance",
+      "tier": 3,
+      "cost": { "matter": 230, "aether": 240 },
+      "research_time": 68.0,
+      "researched_at": "apex_broodspire",
+      "requires": ["apex_broodspire", "adaptive_carapace", "borrowed_violence"],
+      "affects": ["devourer_engine"],
+      "effects": [
+        { "type": "unlock_unit", "unit": "devourer_engine" },
+        { "type": "unlock_ability", "ability": "devour_trait" },
+        { "type": "stat_bonus", "stat": "trait_slots", "value": 2 }
+      ],
+      "strategic_intent": "Late-game payoff that combines stolen enemy strengths into one dangerous unit line."
+    }
+  ]
+}

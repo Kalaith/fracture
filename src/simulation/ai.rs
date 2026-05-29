@@ -105,14 +105,4 @@ impl super::Simulation {
             .min_by_key(|u| (u.position.distance(unit.position) * 100.0) as i32)
             .map(|u| u.id)
     }
-
-    pub(super) fn find_nearest_enemy_pos(&self, unit: &Unit, all_squads: &[Squad]) -> Option<Vec2> {
-        all_squads
-            .iter()
-            .filter(|s| s.owner != unit.owner)
-            .flat_map(|s| &s.units)
-            .filter(|u| u.is_alive())
-            .min_by_key(|u| (u.position.distance(unit.position) * 100.0) as i32)
-            .map(|u| u.position)
-    }
 }

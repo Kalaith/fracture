@@ -1,0 +1,131 @@
+{
+  "race_id": "aetherborn",
+  "race_name": "Aetherborn Concord",
+  "units": [
+    {
+      "id": "sprite_gatherer",
+      "name": "Sprite Gatherer",
+      "role": "worker",
+      "tier": 1,
+      "cost": { "matter": 50, "aether": 0 },
+      "supply": 1,
+      "build_time": 12.0,
+      "produced_by": ["heartwood_nexus"],
+      "requires": [],
+      "stats": { "health": 45, "armor": 0, "move_speed": 80, "sight_range": 9 },
+      "weapons": [],
+      "abilities": [
+        { "id": "gather", "name": "Gather", "type": "economy" },
+        { "id": "grow_structure", "name": "Grow Structure", "type": "build" }
+      ],
+      "counters": [],
+      "countered_by": ["fast_raiders", "area_damage"],
+      "strategic_intent": "Fast fragile worker that rewards protected expansions and punishes poor scouting."
+    },
+    {
+      "id": "elven_warden",
+      "name": "Elven Warden",
+      "role": "ranged_infantry",
+      "tier": 1,
+      "cost": { "matter": 75, "aether": 10 },
+      "supply": 2,
+      "build_time": 18.0,
+      "produced_by": ["grove_circle"],
+      "requires": [],
+      "stats": { "health": 80, "armor": 0, "move_speed": 58, "sight_range": 10 },
+      "weapons": [
+        { "id": "moonbow", "damage": 9, "range": 6, "cooldown": 0.9, "type": "aether_projectile" }
+      ],
+      "abilities": [],
+      "counters": ["light_units", "workers"],
+      "countered_by": ["armor", "area_damage"],
+      "strategic_intent": "Baseline ranged unit for defense, scouting pressure, and early map control."
+    },
+    {
+      "id": "grove_sentinel",
+      "name": "Grove Sentinel",
+      "role": "frontline_defender",
+      "tier": 1,
+      "cost": { "matter": 120, "aether": 20 },
+      "supply": 3,
+      "build_time": 24.0,
+      "produced_by": ["grove_circle"],
+      "requires": ["moonwell"],
+      "stats": { "health": 220, "armor": 3, "move_speed": 36, "sight_range": 8 },
+      "weapons": [
+        { "id": "root_slam", "damage": 18, "range": 1.2, "cooldown": 1.4, "type": "melee" }
+      ],
+      "abilities": [
+        { "id": "rooted_guard", "name": "Rooted Guard", "type": "stance" }
+      ],
+      "counters": ["light_melee", "raiders"],
+      "countered_by": ["siege", "air_units"],
+      "strategic_intent": "Holds ley nodes and buys time for spellcasters, but cannot chase well."
+    },
+    {
+      "id": "wizard_adept",
+      "name": "Wizard Adept",
+      "role": "spellcaster",
+      "tier": 2,
+      "cost": { "matter": 80, "aether": 90 },
+      "supply": 3,
+      "build_time": 30.0,
+      "produced_by": ["arcane_spire"],
+      "requires": ["arcane_spire"],
+      "stats": { "health": 70, "armor": 0, "move_speed": 48, "sight_range": 11 },
+      "weapons": [
+        { "id": "arcane_bolt", "damage": 12, "range": 5, "cooldown": 1.1, "type": "magic" }
+      ],
+      "abilities": [
+        { "id": "silencing_glyph", "name": "Silencing Glyph", "type": "disable" },
+        { "id": "ley_burst", "name": "Ley Burst", "type": "area_damage" }
+      ],
+      "counters": ["clumped_units", "casters", "shield_units"],
+      "countered_by": ["snipers", "fast_raiders"],
+      "strategic_intent": "Turns positioning and timing into real fight control."
+    },
+    {
+      "id": "unicorn_lancer",
+      "name": "Unicorn Lancer",
+      "role": "mobile_support_cavalry",
+      "tier": 2,
+      "cost": { "matter": 140, "aether": 70 },
+      "supply": 4,
+      "build_time": 34.0,
+      "produced_by": ["unicorn_glade"],
+      "requires": ["unicorn_glade"],
+      "stats": { "health": 150, "armor": 1, "move_speed": 82, "sight_range": 10 },
+      "weapons": [
+        { "id": "radiant_charge", "damage": 24, "range": 1.4, "cooldown": 1.2, "type": "magic_melee" }
+      ],
+      "abilities": [
+        { "id": "cleansing_aura", "name": "Cleansing Aura", "type": "support" }
+      ],
+      "counters": ["artillery", "isolated_casters", "workers"],
+      "countered_by": ["anti_cavalry", "heavy_frontline"],
+      "strategic_intent": "Mobile pressure and sustain unit that lets the Aetherborn decide where fights happen."
+    },
+    {
+      "id": "archmage_avatar",
+      "name": "Archmage Avatar",
+      "role": "late_game_caster",
+      "tier": 3,
+      "cost": { "matter": 220, "aether": 260 },
+      "supply": 8,
+      "build_time": 58.0,
+      "produced_by": ["elder_sanctum"],
+      "requires": ["elder_sanctum", "astral_convergence"],
+      "stats": { "health": 240, "armor": 2, "move_speed": 42, "sight_range": 13 },
+      "weapons": [
+        { "id": "starfire", "damage": 34, "range": 7, "cooldown": 1.6, "type": "magic" }
+      ],
+      "abilities": [
+        { "id": "meteor_vow", "name": "Meteor Vow", "type": "ultimate_area_damage" },
+        { "id": "ward_of_ages", "name": "Ward of Ages", "type": "barrier" }
+      ],
+      "counters": ["fortified_positions", "large_armies"],
+      "countered_by": ["focus_fire", "assassins", "anti_magic"],
+      "strategic_intent": "Late-game centerpiece that rewards protecting a fragile high-value caster."
+    }
+  ]
+}

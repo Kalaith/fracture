@@ -1,0 +1,151 @@
+{
+  "race_id": "expeditionary_humans",
+  "race_name": "Terran Expeditionary Directorate",
+  "units": [
+    {
+      "id": "field_engineer",
+      "name": "Field Engineer",
+      "role": "worker",
+      "tier": 1,
+      "cost": { "matter": 50, "aether": 0 },
+      "supply": 1,
+      "build_time": 11.0,
+      "produced_by": ["command_ark"],
+      "requires": [],
+      "stats": { "health": 55, "armor": 0, "move_speed": 60, "sight_range": 9 },
+      "weapons": [
+        { "id": "cutter_pistol", "damage": 4, "range": 3, "cooldown": 1.0, "type": "kinetic" }
+      ],
+      "abilities": [
+        { "id": "gather", "name": "Gather", "type": "economy" },
+        { "id": "construct_structure", "name": "Construct Structure", "type": "build" },
+        { "id": "repair", "name": "Repair", "type": "support" }
+      ],
+      "counters": [],
+      "countered_by": ["raiders", "area_damage"],
+      "strategic_intent": "Reliable worker that supports fast expansion and repair-based defense."
+    },
+    {
+      "id": "ranger_trooper",
+      "name": "Ranger Trooper",
+      "role": "ranged_infantry",
+      "tier": 1,
+      "cost": { "matter": 80, "aether": 0 },
+      "supply": 2,
+      "build_time": 17.0,
+      "produced_by": ["fabricator_bay"],
+      "requires": [],
+      "stats": { "health": 95, "armor": 1, "move_speed": 52, "sight_range": 10 },
+      "weapons": [
+        { "id": "pulse_rifle", "damage": 8, "range": 6, "cooldown": 0.8, "type": "energy" }
+      ],
+      "abilities": [],
+      "counters": ["light_units", "workers"],
+      "countered_by": ["area_damage", "heavy_armor"],
+      "strategic_intent": "Efficient early backbone for defense and pressure."
+    },
+    {
+      "id": "pulse_bike",
+      "name": "Pulse Bike",
+      "role": "scout_raider",
+      "tier": 1,
+      "cost": { "matter": 110, "aether": 15 },
+      "supply": 2,
+      "build_time": 22.0,
+      "produced_by": ["fabricator_bay"],
+      "requires": ["power_relay"],
+      "stats": { "health": 85, "armor": 0, "move_speed": 90, "sight_range": 12 },
+      "weapons": [
+        { "id": "pulse_carbine", "damage": 7, "range": 5, "cooldown": 0.6, "type": "energy" }
+      ],
+      "abilities": [
+        { "id": "sensor_ping", "name": "Sensor Ping", "type": "scout" }
+      ],
+      "counters": ["workers", "artillery", "casters"],
+      "countered_by": ["anti_vehicle", "static_defense"],
+      "strategic_intent": "Scouting and harassment unit that gives humans active tempo tools."
+    },
+    {
+      "id": "aegis_walker",
+      "name": "Aegis Walker",
+      "role": "armored_frontline",
+      "tier": 2,
+      "cost": { "matter": 170, "aether": 55 },
+      "supply": 4,
+      "build_time": 32.0,
+      "produced_by": ["fabricator_bay"],
+      "requires": ["hardlight_lab"],
+      "stats": { "health": 260, "armor": 4, "move_speed": 38, "sight_range": 9 },
+      "weapons": [
+        { "id": "hardlight_cannon", "damage": 22, "range": 5, "cooldown": 1.3, "type": "energy" }
+      ],
+      "abilities": [
+        { "id": "aegis_projector", "name": "Aegis Projector", "type": "shield" }
+      ],
+      "counters": ["infantry", "light_vehicles"],
+      "countered_by": ["anti_armor", "magic_burst"],
+      "strategic_intent": "Durable anchor that lets human ranged units take efficient fights."
+    },
+    {
+      "id": "valkyrie_dronewing",
+      "name": "Valkyrie Dronewing",
+      "role": "air_support",
+      "tier": 2,
+      "cost": { "matter": 130, "aether": 85 },
+      "supply": 3,
+      "build_time": 30.0,
+      "produced_by": ["drone_foundry"],
+      "requires": ["drone_foundry"],
+      "stats": { "health": 130, "armor": 1, "move_speed": 78, "sight_range": 13 },
+      "weapons": [
+        { "id": "micro_missiles", "damage": 14, "range": 6, "cooldown": 1.0, "type": "explosive" }
+      ],
+      "abilities": [
+        { "id": "target_paint", "name": "Target Paint", "type": "debuff" }
+      ],
+      "counters": ["ground_support", "artillery", "isolated_units"],
+      "countered_by": ["anti_air", "storm_magic"],
+      "strategic_intent": "Flexible support aircraft that rewards scouting and focus fire."
+    },
+    {
+      "id": "rail_artillery",
+      "name": "Rail Artillery",
+      "role": "siege",
+      "tier": 2,
+      "cost": { "matter": 220, "aether": 75 },
+      "supply": 5,
+      "build_time": 42.0,
+      "produced_by": ["fabricator_bay"],
+      "requires": ["hardlight_lab", "rail_accelerators"],
+      "stats": { "health": 120, "armor": 0, "move_speed": 28, "sight_range": 11 },
+      "weapons": [
+        { "id": "rail_lance", "damage": 48, "range": 11, "cooldown": 2.4, "type": "kinetic_siege" }
+      ],
+      "abilities": [],
+      "counters": ["static_defense", "slow_armies", "buildings"],
+      "countered_by": ["air_units", "raiders", "flanking_units"],
+      "strategic_intent": "Forces entrenched opponents to move, but demands protection."
+    },
+    {
+      "id": "titan_frame",
+      "name": "Titan Frame",
+      "role": "late_game_heavy",
+      "tier": 3,
+      "cost": { "matter": 330, "aether": 190 },
+      "supply": 8,
+      "build_time": 62.0,
+      "produced_by": ["hardlight_lab"],
+      "requires": ["orbital_uplink", "titan_frame_assembly"],
+      "stats": { "health": 520, "armor": 6, "move_speed": 32, "sight_range": 11 },
+      "weapons": [
+        { "id": "twin_lance_array", "damage": 36, "range": 7, "cooldown": 1.5, "type": "energy_heavy" }
+      ],
+      "abilities": [
+        { "id": "hardlight_bulwark", "name": "Hardlight Bulwark", "type": "shield" }
+      ],
+      "counters": ["frontline_units", "buildings"],
+      "countered_by": ["mass_anti_armor", "control_magic", "adaptive_predators"],
+      "strategic_intent": "Late-game production payoff that is powerful but slow and expensive."
+    }
+  ]
+}

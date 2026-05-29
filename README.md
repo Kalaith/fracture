@@ -27,3 +27,19 @@ Lead your faction through unstable multi-sided war and make decisions that keep 
 ## Current Scope
 
 Playable strategic-command concept focused on faction roles, autonomous forces, and large-scale battlefield decision-making.
+
+## RTS Reboot Design
+
+The current reboot direction moves Fracture Command toward a more traditional RTS foundation: workers, gathering, buildings, tech paths, production, faction asymmetry, and direct strategic agency.
+
+Race design docs:
+
+- [RTS Conversion Plan](docs/plans/rts_conversion_plan.md)
+- [War Origin](docs/story/war_origin.md)
+- [Resource Management](docs/systems/resource_management.md)
+- [Character Profiles](docs/characters/README.md)
+- [Aetherborn Concord](docs/races/aetherborn.md)
+- [Terran Expeditionary Directorate](docs/races/expeditionary_humans.md)
+- [The Inheritors](docs/races/inheritors.md)
+
+The matching design data lives in `assets/data/rts_races/`, with separate `units.json`, `buildings.json`, and `tech.json` files for each race.

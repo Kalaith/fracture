@@ -122,7 +122,7 @@ impl Simulation {
         }
     }
 
-    /// Update sector control based on unit presence (3-faction system)
+    /// Update sector control based on unit presence for the 1v1 prototype.
     pub fn update_sectors(&self, sectors: &mut [Sector], squads: &[Squad], dt: f32) {
         for sector in sectors.iter_mut() {
             let mut faction_units = [0; 3];
@@ -139,7 +139,7 @@ impl Simulation {
             // Determine which faction has majority
             let total_units: i32 = faction_units.iter().sum();
             if total_units == 0 {
-                // No units, decay toward neutral
+                // No units, decay progress slowly but preserve last known control.
                 if sector.control_progress.abs() > 0.01 {
                     sector.control_progress *= 1.0 - (Config::SECTOR_CAPTURE_RATE * 0.3 * dt);
                 }
@@ -162,30 +162,42 @@ impl Simulation {
                     .sum();
 
                 if faction_units[faction.index()] > others_total {
-                    // This faction is capturing
-                    let target_progress = match faction {
-                        FactionId::Faction1 => -1.0,
-                        FactionId::Faction2 => 0.0,
-                        FactionId::Faction3 => 1.0,
+                    let Some(target_progress) = capture_target_progress(faction) else {
+                        continue;
                     };
 
+                    // This faction is capturing
                     let diff = target_progress - sector.control_progress;
-                    let change = diff.signum() * Config::SECTOR_CAPTURE_RATE * dt;
-                    sector.control_progress += change;
+                    let max_change = Config::SECTOR_CAPTURE_RATE * dt;
+                    if diff.abs() <= max_change {
+                        sector.control_progress = target_progress;
+                    } else {
+                        sector.control_progress += diff.signum() * max_change;
+                    }
 
                     // Clamp and set control
                     sector.control_progress = sector.control_progress.clamp(-1.0, 1.0);
-
-                    // Update control based on progress thresholds
-                    if sector.control_progress < -0.6 {
-                        sector.control = Some(FactionId::Faction1);
-                    } else if sector.control_progress > 0.6 {
-                        sector.control = Some(FactionId::Faction3);
-                    } else if sector.control_progress.abs() < 0.3 {
-                        sector.control = Some(FactionId::Faction2);
-                    }
+                    sector.control = control_from_progress(sector.control_progress);
                 }
             }
         }
+    }
+}
+
+fn capture_target_progress(faction: FactionId) -> Option<f32> {
+    match faction {
+        FactionId::Faction1 => Some(-1.0),
+        FactionId::Faction2 => Some(1.0),
+        FactionId::Faction3 => None,
+    }
+}
+
+fn control_from_progress(progress: f32) -> Option<FactionId> {
+    if progress <= -0.6 {
+        Some(FactionId::Faction1)
+    } else if progress >= 0.6 {
+        Some(FactionId::Faction2)
+    } else {
+        None
     }
 }

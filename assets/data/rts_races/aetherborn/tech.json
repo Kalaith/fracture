@@ -1,0 +1,80 @@
+{
+  "race_id": "aetherborn",
+  "race_name": "Aetherborn Concord",
+  "tech": [
+    {
+      "id": "living_bark",
+      "name": "Living Bark",
+      "tier": 1,
+      "cost": { "matter": 100, "aether": 60 },
+      "research_time": 35.0,
+      "researched_at": "grove_circle",
+      "requires": ["grove_circle"],
+      "affects": ["grove_sentinel", "aetherborn_buildings"],
+      "effects": [
+        { "type": "stat_bonus", "stat": "armor", "value": 1 },
+        { "type": "stat_bonus", "stat": "health_percent", "value": 10 }
+      ],
+      "strategic_intent": "Makes defensive map control more reliable without increasing damage."
+    },
+    {
+      "id": "silencing_glyphs",
+      "name": "Silencing Glyphs",
+      "tier": 2,
+      "cost": { "matter": 80, "aether": 120 },
+      "research_time": 40.0,
+      "researched_at": "arcane_spire",
+      "requires": ["arcane_spire"],
+      "affects": ["wizard_adept"],
+      "effects": [
+        { "type": "unlock_ability", "ability": "silencing_glyph" }
+      ],
+      "strategic_intent": "Gives the magic faction counterplay against enemy casters, shields, and activated tech."
+    },
+    {
+      "id": "ley_amplification",
+      "name": "Ley Amplification",
+      "tier": 2,
+      "cost": { "matter": 90, "aether": 150 },
+      "research_time": 45.0,
+      "researched_at": "arcane_spire",
+      "requires": ["arcane_spire"],
+      "affects": ["wizard_adept", "archmage_avatar"],
+      "effects": [
+        { "type": "stat_bonus", "stat": "spell_damage_percent", "value": 15 },
+        { "type": "stat_bonus", "stat": "energy_regen_percent", "value": 20 }
+      ],
+      "strategic_intent": "Amplifies spell timing but does not solve frontline weakness."
+    },
+    {
+      "id": "radiant_charge",
+      "name": "Radiant Charge",
+      "tier": 2,
+      "cost": { "matter": 120, "aether": 110 },
+      "research_time": 38.0,
+      "researched_at": "unicorn_glade",
+      "requires": ["unicorn_glade"],
+      "affects": ["unicorn_lancer"],
+      "effects": [
+        { "type": "unlock_ability", "ability": "radiant_charge" },
+        { "type": "stat_bonus", "stat": "charge_damage_percent", "value": 20 }
+      ],
+      "strategic_intent": "Turns unicorns into a real harassment and backline punish tool."
+    },
+    {
+      "id": "astral_convergence",
+      "name": "Astral Convergence",
+      "tier": 3,
+      "cost": { "matter": 180, "aether": 240 },
+      "research_time": 60.0,
+      "researched_at": "elder_sanctum",
+      "requires": ["elder_sanctum"],
+      "affects": ["archmage_avatar"],
+      "effects": [
+        { "type": "unlock_unit", "unit": "archmage_avatar" },
+        { "type": "unlock_ability", "ability": "meteor_vow" }
+      ],
+      "strategic_intent": "Late-game tech gate for the faction's decisive spellcaster."
+    }
+  ]
+}

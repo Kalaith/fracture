@@ -1,0 +1,81 @@
+{
+  "race_id": "expeditionary_humans",
+  "race_name": "Terran Expeditionary Directorate",
+  "tech": [
+    {
+      "id": "stabilized_barrels",
+      "name": "Stabilized Barrels",
+      "tier": 1,
+      "cost": { "matter": 120, "aether": 40 },
+      "research_time": 35.0,
+      "researched_at": "fabricator_bay",
+      "requires": ["fabricator_bay"],
+      "affects": ["ranger_trooper", "pulse_bike"],
+      "effects": [
+        { "type": "stat_bonus", "stat": "attack_range", "value": 1 },
+        { "type": "stat_bonus", "stat": "accuracy_percent", "value": 10 }
+      ],
+      "strategic_intent": "Basic tempo upgrade for disciplined ranged play."
+    },
+    {
+      "id": "sensor_mesh",
+      "name": "Sensor Mesh",
+      "tier": 2,
+      "cost": { "matter": 90, "aether": 90 },
+      "research_time": 38.0,
+      "researched_at": "drone_foundry",
+      "requires": ["drone_foundry"],
+      "affects": ["pulse_bike", "valkyrie_dronewing", "orbital_scan"],
+      "effects": [
+        { "type": "stat_bonus", "stat": "sight_range", "value": 3 },
+        { "type": "unlock_ability", "ability": "sensor_ping" }
+      ],
+      "strategic_intent": "Information upgrade for scouting tech choices and expansion timing."
+    },
+    {
+      "id": "aegis_projectors",
+      "name": "Aegis Projectors",
+      "tier": 2,
+      "cost": { "matter": 140, "aether": 120 },
+      "research_time": 45.0,
+      "researched_at": "hardlight_lab",
+      "requires": ["hardlight_lab"],
+      "affects": ["aegis_walker", "titan_frame"],
+      "effects": [
+        { "type": "unlock_ability", "ability": "aegis_projector" },
+        { "type": "stat_bonus", "stat": "shield_capacity", "value": 60 }
+      ],
+      "strategic_intent": "Gives human armies a durable push timing if protected from disruption."
+    },
+    {
+      "id": "rail_accelerators",
+      "name": "Rail Accelerators",
+      "tier": 2,
+      "cost": { "matter": 150, "aether": 110 },
+      "research_time": 42.0,
+      "researched_at": "hardlight_lab",
+      "requires": ["hardlight_lab"],
+      "affects": ["rail_artillery"],
+      "effects": [
+        { "type": "unlock_unit", "unit": "rail_artillery" },
+        { "type": "stat_bonus", "stat": "siege_damage_percent", "value": 15 }
+      ],
+      "strategic_intent": "Unlocks siege pressure so defensive opponents cannot sit forever."
+    },
+    {
+      "id": "titan_frame_assembly",
+      "name": "Titan Frame Assembly",
+      "tier": 3,
+      "cost": { "matter": 220, "aether": 220 },
+      "research_time": 65.0,
+      "researched_at": "hardlight_lab",
+      "requires": ["hardlight_lab", "orbital_uplink"],
+      "affects": ["titan_frame"],
+      "effects": [
+        { "type": "unlock_unit", "unit": "titan_frame" },
+        { "type": "stat_bonus", "stat": "health_percent", "value": 12 }
+      ],
+      "strategic_intent": "Late-game tech gate for a slow but powerful human army anchor."
+    }
+  ]
+}
