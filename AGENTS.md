@@ -2,6 +2,8 @@
 
 This file provides guidance to Codex (Codex.ai/code) when working with code in this repository.
 
+This project uses the shared RustGames agent instructions in [`../AGENTS.md`](../AGENTS.md). Codex should read and apply that file when working here.
+
 ## Project Overview
 
 **Fracture Command** is a strategic co-op war simulation game where players command autonomous forces through high-level doctrines and logistics rather than micromanagement. The current implementation target is a 1v1 networked prototype.
