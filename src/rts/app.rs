@@ -1,6 +1,7 @@
 use super::{
-    BasicSkirmishAi, BuildingKind, EntityId, RaceId, ResourceNodeId, ResourceNodeKind,
-    RtsGameState, RtsMapDefinition, TechKind, UnitCommand, UnitKind, PLAYER_ONE, PLAYER_TWO,
+    command_catalog_for, BasicSkirmishAi, BuildingKind, EntityId, RaceId, ResourceNodeId,
+    ResourceNodeKind, RtsGameState, RtsMapDefinition, TechKind, UnitCommand, UnitKind,
+    PLAYER_ONE, PLAYER_TWO,
 };
 use macroquad::prelude::*;
 use macroquad_toolkit::camera::Camera2D as ToolkitCamera;
@@ -58,7 +59,12 @@ impl RtsApp {
     }
 
     pub fn camera_center(&self) -> Vec2 {
-        self.state.map_size * 0.5
+        self.state
+            .buildings
+            .iter()
+            .find(|building| building.owner == self.local_player && building.kind.is_main_base())
+            .map(|building| building.position)
+            .unwrap_or(self.state.map_size * 0.5)
     }
 
     pub fn update(&mut self, camera: &mut ToolkitCamera, dt: f32) {
@@ -118,6 +124,10 @@ impl RtsApp {
         if wheel_y != 0.0 {
             let zoom_factor = 1.0 + wheel_y.signum() * CAMERA_ZOOM_SPEED;
             camera.zoom = (camera.zoom * zoom_factor).clamp(CAMERA_MIN_ZOOM, CAMERA_MAX_ZOOM);
+        }
+
+        if let Some(bounds) = self.state.camera_bounds {
+            camera.target = bounds.clamp(camera.target);
         }
 
         camera.update(dt, false);
@@ -217,34 +227,57 @@ impl RtsApp {
 
     fn handle_hotkeys(&mut self, camera: &ToolkitCamera) {
         let _ = camera;
+        let catalog = command_catalog_for(self.local_race());
 
         if is_key_pressed(KeyCode::Z) {
-            self.start_build_placement(BuildIntent::Standard(supply_building_for(
-                self.local_race(),
-            )));
+            self.start_build_placement(BuildIntent::Standard(catalog.supply_building));
         }
         if is_key_pressed(KeyCode::X) {
-            self.start_build_placement(BuildIntent::Standard(production_building_for(
-                self.local_race(),
-            )));
+            self.start_build_placement(BuildIntent::Standard(catalog.production_building));
         }
         if is_key_pressed(KeyCode::C) {
             self.start_build_placement(BuildIntent::LeyClaim);
         }
         if is_key_pressed(KeyCode::V) {
-            self.start_build_placement(BuildIntent::Standard(aether_link_building_for(
-                self.local_race(),
-            )));
+            self.start_build_placement(BuildIntent::Standard(catalog.aether_link_building));
+        }
+        if is_key_pressed(KeyCode::B) {
+            self.start_build_placement(BuildIntent::Standard(
+                catalog.advanced_production_building,
+            ));
+        }
+        if is_key_pressed(KeyCode::N) {
+            self.start_build_placement(BuildIntent::Standard(catalog.research_building));
         }
 
         if is_key_pressed(KeyCode::Q) {
-            self.try_train(worker_unit_for(self.local_race()));
+            self.try_train(catalog.worker_unit);
         }
         if is_key_pressed(KeyCode::T) {
-            self.try_train(combat_unit_for(self.local_race()));
+            self.try_train(catalog.combat_unit);
+        }
+        if is_key_pressed(KeyCode::Y) {
+            self.try_train(catalog.heavy_unit);
+        }
+        if is_key_pressed(KeyCode::U) {
+            if let Some(unit_kind) = catalog.specialist_unit {
+                self.try_train(unit_kind);
+            } else {
+                self.set_message("This race has no specialist unit yet");
+            }
         }
         if is_key_pressed(KeyCode::R) {
-            self.try_research(race_tech_for(self.local_race()));
+            self.try_research(catalog.basic_tech);
+        }
+        if is_key_pressed(KeyCode::F) {
+            self.try_research(catalog.heavy_tech);
+        }
+        if is_key_pressed(KeyCode::G) {
+            if let Some(tech_kind) = catalog.specialist_tech {
+                self.try_research(tech_kind);
+            } else {
+                self.set_message("This race has no specialist tech yet");
+            }
         }
         if is_key_pressed(KeyCode::F5) {
             self.restart_as(opposing_player(self.local_player));
@@ -328,7 +361,7 @@ impl RtsApp {
             return false;
         };
 
-        let building_kind = ley_claim_building_for(self.local_race());
+        let building_kind = command_catalog_for(self.local_race()).ley_claim_building;
         match self
             .state
             .start_construction_on_resource_node(worker_id, building_kind, node_id)
@@ -662,18 +695,20 @@ impl RtsApp {
         }
 
         if self.selected_worker().is_some() {
-            let race = self.local_race();
+            let catalog = command_catalog_for(self.local_race());
             return format!(
-                "Worker build: Z {:?}, X {:?}, C {:?}, V {:?} | then left-click placement | right-click move/gather/attack",
-                supply_building_for(race),
-                production_building_for(race),
-                ley_claim_building_for(race),
-                aether_link_building_for(race)
+                "Worker build: Z {:?}, X {:?}, C {:?}, V {:?}, B {:?}, N {:?} | then left-click placement",
+                catalog.supply_building,
+                catalog.production_building,
+                catalog.ley_claim_building,
+                catalog.aether_link_building,
+                catalog.advanced_production_building,
+                catalog.research_building
             );
         }
 
         if self.selected_building.is_some() {
-            return "Building commands: Q train worker | T train combat unit | R research tech | F5 switch race"
+            return "Building commands: Q worker | T basic | Y heavy | U specialist | R/F/G tech | F5 switch race"
                 .to_string();
         }
 
@@ -776,6 +811,10 @@ fn building_label(kind: BuildingKind) -> &'static str {
         BuildingKind::SupplyPylon => "Pylon",
         BuildingKind::GroveCircle => "Grove",
         BuildingKind::FabricatorBay => "Fab",
+        BuildingKind::StarfallSanctum => "Stars",
+        BuildingKind::MechFoundry => "Foundry",
+        BuildingKind::ElderSanctum => "Elder",
+        BuildingKind::TacticalLab => "Lab",
         BuildingKind::LeyShrine => "Shrine",
         BuildingKind::RitualNode => "Node",
         BuildingKind::AetherExtractorRig => "Rig",
@@ -787,6 +826,8 @@ fn building_size(kind: BuildingKind) -> Vec2 {
     match kind {
         BuildingKind::HeartwoodNexus | BuildingKind::CommandArk => vec2(70.0, 58.0),
         BuildingKind::GroveCircle | BuildingKind::FabricatorBay => vec2(58.0, 46.0),
+        BuildingKind::StarfallSanctum | BuildingKind::MechFoundry => vec2(64.0, 52.0),
+        BuildingKind::ElderSanctum | BuildingKind::TacticalLab => vec2(52.0, 44.0),
         BuildingKind::Moonwell | BuildingKind::SupplyPylon => vec2(44.0, 38.0),
         BuildingKind::LeyShrine | BuildingKind::AetherExtractorRig => vec2(42.0, 42.0),
         BuildingKind::RitualNode | BuildingKind::BatteryDepot => vec2(38.0, 34.0),
@@ -797,6 +838,8 @@ fn unit_radius(kind: UnitKind) -> f32 {
     match kind {
         UnitKind::SpriteGatherer | UnitKind::FieldEngineer => 9.0,
         UnitKind::ElvenWarden | UnitKind::RangerTrooper => 12.0,
+        UnitKind::GroveSentinel | UnitKind::WizardAdept => 14.0,
+        UnitKind::AegisWalker => 17.0,
     }
 }
 
@@ -820,55 +863,6 @@ fn draw_health_bar(top_left: Vec2, width: f32, health: f32, max_health: f32) {
         5.0,
         Color::from_rgba(75, 220, 105, 255),
     );
-}
-
-fn supply_building_for(race: RaceId) -> BuildingKind {
-    match race {
-        RaceId::Aetherborn => BuildingKind::Moonwell,
-        RaceId::Terran => BuildingKind::SupplyPylon,
-    }
-}
-
-fn production_building_for(race: RaceId) -> BuildingKind {
-    match race {
-        RaceId::Aetherborn => BuildingKind::GroveCircle,
-        RaceId::Terran => BuildingKind::FabricatorBay,
-    }
-}
-
-fn ley_claim_building_for(race: RaceId) -> BuildingKind {
-    match race {
-        RaceId::Aetherborn => BuildingKind::LeyShrine,
-        RaceId::Terran => BuildingKind::AetherExtractorRig,
-    }
-}
-
-fn aether_link_building_for(race: RaceId) -> BuildingKind {
-    match race {
-        RaceId::Aetherborn => BuildingKind::RitualNode,
-        RaceId::Terran => BuildingKind::BatteryDepot,
-    }
-}
-
-fn worker_unit_for(race: RaceId) -> UnitKind {
-    match race {
-        RaceId::Aetherborn => UnitKind::SpriteGatherer,
-        RaceId::Terran => UnitKind::FieldEngineer,
-    }
-}
-
-fn combat_unit_for(race: RaceId) -> UnitKind {
-    match race {
-        RaceId::Aetherborn => UnitKind::ElvenWarden,
-        RaceId::Terran => UnitKind::RangerTrooper,
-    }
-}
-
-fn race_tech_for(race: RaceId) -> TechKind {
-    match race {
-        RaceId::Aetherborn => TechKind::LivingBark,
-        RaceId::Terran => TechKind::StabilizedBarrels,
-    }
 }
 
 fn opposing_player(player_id: usize) -> usize {

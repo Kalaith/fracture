@@ -37,7 +37,7 @@ pub struct RtsMapDimensions {
 }
 
 impl RtsMapDimensions {
-    fn as_vec2(self) -> Vec2 {
+    pub(crate) fn as_vec2(self) -> Vec2 {
         vec2(self.width, self.height)
     }
 }
@@ -49,7 +49,7 @@ pub struct RtsMapPosition {
 }
 
 impl RtsMapPosition {
-    fn as_vec2(self) -> Vec2 {
+    pub(crate) fn as_vec2(self) -> Vec2 {
         vec2(self.x, self.y)
     }
 }
@@ -118,6 +118,22 @@ pub struct RtsMapExpansionMarker {
     pub recommended_for: Option<RaceId>,
 }
 
+impl RtsMapArea {
+    pub(crate) fn contains(self, position: Vec2) -> bool {
+        position.x >= self.x
+            && position.y >= self.y
+            && position.x <= self.x + self.width
+            && position.y <= self.y + self.height
+    }
+
+    pub(crate) fn clamp(self, position: Vec2) -> Vec2 {
+        vec2(
+            position.x.clamp(self.x, self.x + self.width),
+            position.y.clamp(self.y, self.y + self.height),
+        )
+    }
+}
+
 impl RtsGameState {
     pub fn from_map_definition(map: &RtsMapDefinition) -> Result<Self, String> {
         let mut player_starts = map.players.clone();
@@ -139,6 +155,10 @@ impl RtsGameState {
         let mut state = Self {
             map_id: Some(map.id.clone()),
             map_size: map.dimensions.as_vec2(),
+            camera_bounds: Some(map.camera_bounds),
+            buildable_areas: map.buildable_areas.clone(),
+            path_blockers: map.path_blockers.clone(),
+            expansion_markers: map.expansion_markers.clone(),
             players: player_starts
                 .iter()
                 .map(|player| PlayerState::new(player.race))

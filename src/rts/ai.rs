@@ -1,6 +1,6 @@
 use super::{
-    BuildingInstance, BuildingKind, EntityId, RaceId, ResourceNodeId, ResourceNodeKind,
-    RtsGameState, UnitCommand, UnitKind,
+    command_catalog_for, BuildingInstance, BuildingKind, EntityId, RaceId, ResourceNodeId,
+    ResourceNodeKind, RtsGameState, UnitCommand,
 };
 use macroquad::prelude::{vec2, Vec2};
 
@@ -38,7 +38,11 @@ impl BasicSkirmishAi {
         self.ensure_supply_if_needed(state);
         self.ensure_production_building(state);
         self.ensure_aether_infrastructure(state);
+        self.ensure_research_building(state);
+        self.ensure_advanced_production_building(state);
+        self.research_available_tech(state);
         self.train_combat_unit(state);
+        self.train_advanced_unit(state);
         self.send_attack_wave(state);
     }
 
@@ -62,7 +66,7 @@ impl BasicSkirmishAi {
     }
 
     fn train_worker_if_needed(&self, state: &mut RtsGameState) {
-        let worker_kind = worker_unit_for(state.players[self.player_id].race);
+        let worker_kind = command_catalog_for(state.players[self.player_id].race).worker_unit;
         let worker_count = state
             .units
             .iter()
@@ -94,7 +98,7 @@ impl BasicSkirmishAi {
             return;
         }
 
-        let kind = supply_building_for(state.players[self.player_id].race);
+        let kind = command_catalog_for(state.players[self.player_id].race).supply_building;
         if state.players[self.player_id].resources.matter < kind.matter_cost() {
             return;
         }
@@ -109,7 +113,7 @@ impl BasicSkirmishAi {
 
     fn ensure_production_building(&self, state: &mut RtsGameState) {
         let race = state.players[self.player_id].race;
-        let production_kind = production_building_for(race);
+        let production_kind = command_catalog_for(race).production_building;
         let already_exists = state
             .buildings
             .iter()
@@ -131,6 +135,46 @@ impl BasicSkirmishAi {
         let _ = state.start_construction(worker_id, production_kind, position);
     }
 
+    fn ensure_research_building(&self, state: &mut RtsGameState) {
+        let race = state.players[self.player_id].race;
+        let kind = command_catalog_for(race).research_building;
+        let already_exists = state
+            .buildings
+            .iter()
+            .any(|building| building.owner == self.player_id && building.kind == kind);
+
+        if already_exists
+            || has_incomplete_building(state, self.player_id)
+            || state.players[self.player_id].resources.matter < kind.matter_cost()
+        {
+            return;
+        }
+
+        let position = main_base_position(state, self.player_id).unwrap_or(vec2(0.0, 0.0))
+            + research_offset_for(race);
+        self.try_construct_at(state, kind, position);
+    }
+
+    fn ensure_advanced_production_building(&self, state: &mut RtsGameState) {
+        let race = state.players[self.player_id].race;
+        let kind = command_catalog_for(race).advanced_production_building;
+        let already_exists = state
+            .buildings
+            .iter()
+            .any(|building| building.owner == self.player_id && building.kind == kind);
+
+        if already_exists
+            || has_incomplete_building(state, self.player_id)
+            || state.players[self.player_id].resources.matter < kind.matter_cost()
+        {
+            return;
+        }
+
+        let position = main_base_position(state, self.player_id).unwrap_or(vec2(0.0, 0.0))
+            + advanced_production_offset_for(race);
+        self.try_construct_at(state, kind, position);
+    }
+
     fn ensure_aether_infrastructure(&self, state: &mut RtsGameState) {
         if has_incomplete_building(state, self.player_id) {
             return;
@@ -143,21 +187,25 @@ impl BasicSkirmishAi {
     }
 
     fn ensure_aetherborn_ley_network(&self, state: &mut RtsGameState) {
+        let catalog = command_catalog_for(state.players[self.player_id].race);
         let has_shrine = state.buildings.iter().any(|building| {
-            building.owner == self.player_id && building.kind == BuildingKind::LeyShrine
+            building.owner == self.player_id && building.kind == catalog.ley_claim_building
         });
         let has_ritual_node = state.buildings.iter().any(|building| {
-            building.owner == self.player_id && building.kind == BuildingKind::RitualNode
+            building.owner == self.player_id && building.kind == catalog.aether_link_building
         });
 
         if !has_shrine {
-            self.try_claim_ley_node(state, BuildingKind::LeyShrine);
+            self.try_claim_ley_node(state, catalog.ley_claim_building);
             return;
         }
 
         if !has_ritual_node {
-            let Some(shrine) = first_owned_building(state, self.player_id, BuildingKind::LeyShrine)
-            else {
+            let Some(shrine) = first_owned_building(
+                state,
+                self.player_id,
+                catalog.ley_claim_building,
+            ) else {
                 return;
             };
             let Some(base_position) = main_base_position(state, self.player_id) else {
@@ -165,32 +213,33 @@ impl BasicSkirmishAi {
             };
 
             let position = (base_position + shrine.position) * 0.5;
-            self.try_construct_at(state, BuildingKind::RitualNode, position);
+            self.try_construct_at(state, catalog.aether_link_building, position);
         }
     }
 
     fn ensure_terran_battery_route(&self, state: &mut RtsGameState) {
+        let catalog = command_catalog_for(state.players[self.player_id].race);
         let has_extractor = state.buildings.iter().any(|building| {
-            building.owner == self.player_id && building.kind == BuildingKind::AetherExtractorRig
+            building.owner == self.player_id && building.kind == catalog.ley_claim_building
         });
         let has_depot = state.buildings.iter().any(|building| {
-            building.owner == self.player_id && building.kind == BuildingKind::BatteryDepot
+            building.owner == self.player_id && building.kind == catalog.aether_link_building
         });
 
         if !has_extractor {
-            self.try_claim_ley_node(state, BuildingKind::AetherExtractorRig);
+            self.try_claim_ley_node(state, catalog.ley_claim_building);
             return;
         }
 
         if !has_depot {
             let Some(extractor) =
-                first_owned_building(state, self.player_id, BuildingKind::AetherExtractorRig)
+                first_owned_building(state, self.player_id, catalog.ley_claim_building)
             else {
                 return;
             };
             self.try_construct_at(
                 state,
-                BuildingKind::BatteryDepot,
+                catalog.aether_link_building,
                 extractor.position + vec2(70.0, 0.0),
             );
         }
@@ -225,13 +274,15 @@ impl BasicSkirmishAi {
             return;
         };
 
+        let position = preferred_build_position(state, self.player_id, position);
         let _ = state.start_construction(worker_id, building_kind, position);
     }
 
     fn train_combat_unit(&self, state: &mut RtsGameState) {
         let race = state.players[self.player_id].race;
-        let production_kind = production_building_for(race);
-        let unit_kind = combat_unit_for(race);
+        let catalog = command_catalog_for(race);
+        let production_kind = catalog.production_building;
+        let unit_kind = catalog.combat_unit;
 
         let producers: Vec<EntityId> = state
             .buildings
@@ -248,6 +299,66 @@ impl BasicSkirmishAi {
         for producer_id in producers {
             if state.can_train_unit(self.player_id, unit_kind).is_ok() {
                 let _ = state.train_unit(producer_id, unit_kind);
+            }
+        }
+    }
+
+    fn research_available_tech(&self, state: &mut RtsGameState) {
+        let race = state.players[self.player_id].race;
+        let catalog = command_catalog_for(race);
+        let research_building_kind = catalog.research_building;
+        let tech_plan = catalog.tech_plan;
+
+        let researchers: Vec<EntityId> = state
+            .buildings
+            .iter()
+            .filter(|building| {
+                building.owner == self.player_id
+                    && building.completed
+                    && building.research_queue.is_empty()
+                    && (building.kind == catalog.production_building
+                        || building.kind == research_building_kind)
+            })
+            .map(|building| building.id)
+            .collect();
+
+        for researcher_id in researchers {
+            for &tech_kind in tech_plan {
+                if state.players[self.player_id].has_tech(tech_kind) {
+                    continue;
+                }
+
+                if state.research_tech(researcher_id, tech_kind).is_ok() {
+                    break;
+                }
+            }
+        }
+    }
+
+    fn train_advanced_unit(&self, state: &mut RtsGameState) {
+        let race = state.players[self.player_id].race;
+        let catalog = command_catalog_for(race);
+        let producer_kind = catalog.advanced_production_building;
+        let advanced_units = catalog.advanced_units;
+
+        let producers: Vec<EntityId> = state
+            .buildings
+            .iter()
+            .filter(|building| {
+                building.owner == self.player_id
+                    && building.kind == producer_kind
+                    && building.completed
+                    && building.production_queue.is_empty()
+            })
+            .map(|building| building.id)
+            .collect();
+
+        for producer_id in producers {
+            for &unit_kind in advanced_units {
+                if state.can_train_unit(self.player_id, unit_kind).is_ok() {
+                    let _ = state.train_unit(producer_id, unit_kind);
+                    break;
+                }
             }
         }
     }
@@ -281,34 +392,6 @@ impl BasicSkirmishAi {
     }
 }
 
-fn production_building_for(race: RaceId) -> BuildingKind {
-    match race {
-        RaceId::Aetherborn => BuildingKind::GroveCircle,
-        RaceId::Terran => BuildingKind::FabricatorBay,
-    }
-}
-
-fn supply_building_for(race: RaceId) -> BuildingKind {
-    match race {
-        RaceId::Aetherborn => BuildingKind::Moonwell,
-        RaceId::Terran => BuildingKind::SupplyPylon,
-    }
-}
-
-fn worker_unit_for(race: RaceId) -> UnitKind {
-    match race {
-        RaceId::Aetherborn => UnitKind::SpriteGatherer,
-        RaceId::Terran => UnitKind::FieldEngineer,
-    }
-}
-
-fn combat_unit_for(race: RaceId) -> UnitKind {
-    match race {
-        RaceId::Aetherborn => UnitKind::ElvenWarden,
-        RaceId::Terran => UnitKind::RangerTrooper,
-    }
-}
-
 fn supply_offset_for(race: RaceId) -> Vec2 {
     match race {
         RaceId::Aetherborn => vec2(70.0, 58.0),
@@ -320,6 +403,20 @@ fn production_offset_for(race: RaceId) -> Vec2 {
     match race {
         RaceId::Aetherborn => vec2(80.0, -64.0),
         RaceId::Terran => vec2(-80.0, -64.0),
+    }
+}
+
+fn advanced_production_offset_for(race: RaceId) -> Vec2 {
+    match race {
+        RaceId::Aetherborn => vec2(155.0, -120.0),
+        RaceId::Terran => vec2(-155.0, -120.0),
+    }
+}
+
+fn research_offset_for(race: RaceId) -> Vec2 {
+    match race {
+        RaceId::Aetherborn => vec2(150.0, 40.0),
+        RaceId::Terran => vec2(-150.0, 40.0),
     }
 }
 
@@ -355,6 +452,14 @@ fn first_owned_building(
 
 fn nearest_unclaimed_ley_node(state: &RtsGameState, player_id: usize) -> Option<ResourceNodeId> {
     let base_position = main_base_position(state, player_id)?;
+    let race = state.players[player_id].race;
+    let expansion_positions: Vec<Vec2> = state
+        .expansion_markers
+        .iter()
+        .filter(|marker| marker.recommended_for.map_or(true, |recommended| recommended == race))
+        .map(|marker| marker.position.as_vec2())
+        .collect();
+
     state
         .resource_nodes
         .iter()
@@ -366,11 +471,44 @@ fn nearest_unclaimed_ley_node(state: &RtsGameState, player_id: usize) -> Option<
                 .all(|building| building.claimed_node != Some(node.id))
         })
         .min_by(|left, right| {
-            base_position
-                .distance(left.position)
-                .total_cmp(&base_position.distance(right.position))
+            ley_node_expansion_score(left.position, base_position, &expansion_positions)
+                .total_cmp(&ley_node_expansion_score(
+                    right.position,
+                    base_position,
+                    &expansion_positions,
+                ))
         })
         .map(|node| node.id)
+}
+
+fn preferred_build_position(state: &RtsGameState, player_id: usize, desired: Vec2) -> Vec2 {
+    if state.can_place_standard_building(desired) {
+        return desired;
+    }
+
+    let race = state.players[player_id].race;
+    state
+        .expansion_markers
+        .iter()
+        .filter(|marker| marker.recommended_for.map_or(true, |recommended| recommended == race))
+        .map(|marker| marker.position.as_vec2())
+        .filter(|position| state.can_place_standard_building(*position))
+        .min_by(|left, right| {
+            desired
+                .distance(*left)
+                .total_cmp(&desired.distance(*right))
+        })
+        .unwrap_or(desired)
+}
+
+fn ley_node_expansion_score(position: Vec2, base_position: Vec2, expansions: &[Vec2]) -> f32 {
+    let expansion_score = expansions
+        .iter()
+        .map(|expansion| position.distance(*expansion))
+        .min_by(|left, right| left.total_cmp(right))
+        .unwrap_or(0.0);
+
+    expansion_score + base_position.distance(position) * 0.25
 }
 
 fn main_base_id(state: &RtsGameState, player_id: usize) -> Option<EntityId> {

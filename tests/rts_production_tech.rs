@@ -126,3 +126,61 @@ fn researched_upgrade_modifies_unit_stats() {
     let upgraded_stats = state.unit_stats_for_player(PLAYER_TWO, UnitKind::RangerTrooper);
     assert!(upgraded_stats.attack_damage > starting_stats.attack_damage);
 }
+
+#[test]
+fn advanced_units_require_researched_tech() {
+    let mut state = RtsGameState::new_two_player_test_match();
+    let foundry_id =
+        state.add_completed_building(PLAYER_TWO, BuildingKind::MechFoundry, vec2(920.0, 300.0));
+    state.players[PLAYER_TWO].resources.matter = 1_000;
+
+    let blocked = state.train_unit(foundry_id, UnitKind::AegisWalker);
+    assert_eq!(Err(RtsError::MissingTech), blocked);
+
+    let lab_id =
+        state.add_completed_building(PLAYER_TWO, BuildingKind::TacticalLab, vec2(900.0, 360.0));
+    state.research_tech(lab_id, TechKind::AegisFrame).unwrap();
+    run_for(&mut state, TechKind::AegisFrame.research_time() + TEST_DT);
+
+    state.train_unit(foundry_id, UnitKind::AegisWalker).unwrap();
+}
+
+#[test]
+fn aetherborn_advanced_buildings_unlock_new_units_and_tech() {
+    let mut state = RtsGameState::new_two_player_test_match();
+    let sanctum_id = state.add_completed_building(
+        PLAYER_ONE,
+        BuildingKind::StarfallSanctum,
+        vec2(280.0, 300.0),
+    );
+    let elder_id =
+        state.add_completed_building(PLAYER_ONE, BuildingKind::ElderSanctum, vec2(300.0, 360.0));
+    state.players[PLAYER_ONE].resources.matter = 2_000;
+
+    state
+        .research_tech(elder_id, TechKind::RootguardPact)
+        .unwrap();
+    run_for(
+        &mut state,
+        TechKind::RootguardPact.research_time() + TEST_DT,
+    );
+    state
+        .research_tech(elder_id, TechKind::AstralChanneling)
+        .unwrap();
+    run_for(
+        &mut state,
+        TechKind::AstralChanneling.research_time() + TEST_DT,
+    );
+
+    state
+        .train_unit(sanctum_id, UnitKind::GroveSentinel)
+        .unwrap();
+    state.train_unit(sanctum_id, UnitKind::WizardAdept).unwrap();
+    run_for(
+        &mut state,
+        UnitKind::GroveSentinel.production_time() + UnitKind::WizardAdept.production_time(),
+    );
+
+    assert_eq!(1, unit_count(&state, PLAYER_ONE, UnitKind::GroveSentinel));
+    assert_eq!(1, unit_count(&state, PLAYER_ONE, UnitKind::WizardAdept));
+}
