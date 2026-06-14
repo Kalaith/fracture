@@ -1,10 +1,11 @@
 use super::{
     command_catalog_for, BasicSkirmishAi, BuildingKind, EntityId, RaceId, ResourceNodeId,
-    ResourceNodeKind, RtsGameState, RtsMapDefinition, TechKind, UnitCommand, UnitKind,
-    PLAYER_ONE, PLAYER_TWO,
+    ResourceNodeKind, RtsGameState, RtsMapDefinition, TechKind, UnitCommand, UnitKind, PLAYER_ONE,
+    PLAYER_TWO,
 };
 use macroquad::prelude::*;
 use macroquad_toolkit::camera::Camera2D as ToolkitCamera;
+use macroquad_toolkit::ui::{draw_ui_text, measure_ui_text};
 
 const CRASH_BASIN_JSON: &str = include_str!("../../assets/data/rts_maps/crash_basin_skirmish.json");
 const CAMERA_PAN_SPEED: f32 = 520.0;
@@ -242,9 +243,7 @@ impl RtsApp {
             self.start_build_placement(BuildIntent::Standard(catalog.aether_link_building));
         }
         if is_key_pressed(KeyCode::B) {
-            self.start_build_placement(BuildIntent::Standard(
-                catalog.advanced_production_building,
-            ));
+            self.start_build_placement(BuildIntent::Standard(catalog.advanced_production_building));
         }
         if is_key_pressed(KeyCode::N) {
             self.start_build_placement(BuildIntent::Standard(catalog.research_building));
@@ -517,7 +516,7 @@ impl RtsApp {
             }
 
             let label = building_label(building.kind);
-            draw_text(label, top_left.x, top_left.y - 8.0, 18.0, WHITE);
+            draw_ui_text(label, top_left.x, top_left.y - 8.0, 18.0, WHITE);
             draw_health_bar(
                 top_left + vec2(0.0, size.y + 5.0),
                 size.x,
@@ -606,10 +605,10 @@ impl RtsApp {
             player.supply_cap,
             player.ley_flow_capacity
         );
-        draw_text(&title, 18.0, 30.0, 24.0, WHITE);
+        draw_ui_text(&title, 18.0, 30.0, 24.0, WHITE);
 
         let selection = self.selection_label();
-        draw_text(
+        draw_ui_text(
             &selection,
             18.0,
             58.0,
@@ -618,7 +617,7 @@ impl RtsApp {
         );
 
         let controls = self.controls_text();
-        draw_text(
+        draw_ui_text(
             &controls,
             18.0,
             88.0,
@@ -627,7 +626,7 @@ impl RtsApp {
         );
 
         if self.message_timer > 0.0 {
-            draw_text(
+            draw_ui_text(
                 &self.message,
                 18.0,
                 panel_height + 28.0,
@@ -642,7 +641,7 @@ impl RtsApp {
             } else {
                 "Defeat"
             };
-            let dims = measure_text(text, None, 64, 1.0);
+            let dims = measure_ui_text(text, None, 64, 1.0);
             draw_rectangle(
                 screen_width() * 0.5 - 210.0,
                 screen_height() * 0.5 - 70.0,
@@ -650,7 +649,7 @@ impl RtsApp {
                 130.0,
                 Color::from_rgba(10, 12, 14, 230),
             );
-            draw_text(
+            draw_ui_text(
                 text,
                 screen_width() * 0.5 - dims.width * 0.5,
                 screen_height() * 0.5 + 18.0,

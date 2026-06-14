@@ -5,6 +5,7 @@ use crate::game::GameState;
 use crate::types::FactionId;
 use macroquad::prelude::*;
 use macroquad_toolkit::colors::dark;
+use macroquad_toolkit::ui::{draw_ui_text, measure_ui_text};
 
 pub fn render_minimap(game: &GameState) {
     let minimap_size = 200.0;
@@ -52,7 +53,7 @@ pub fn render_minimap(game: &GameState) {
     }
 
     // Label
-    draw_text(
+    draw_ui_text(
         "MINIMAP",
         minimap_x + 5.0,
         minimap_y + minimap_size + 15.0,
@@ -95,7 +96,7 @@ fn render_faction_supply_bars(game: &GameState, x: f32, y: f32, width: f32) {
         let supply_percent = commander.supply_used as f32 / commander.supply_max as f32;
 
         // Faction label
-        draw_text(
+        draw_ui_text(
             &format!(
                 "{}: {}/{}",
                 name, commander.supply_used, commander.supply_max
@@ -194,7 +195,7 @@ fn render_build_panel(game: &GameState, x: f32, y: f32, width: f32) {
             dark::TEXT_DIM
         };
 
-        draw_text(
+        draw_ui_text(
             &format!("[{}] {} (x3)", key, name),
             text_x,
             y_offset,
@@ -212,13 +213,13 @@ fn render_build_panel(game: &GameState, x: f32, y: f32, width: f32) {
         } else {
             format!("  Cost:{} HP:{:.0} DMG:{:.0}", total_cost, health, damage)
         };
-        draw_text(&stats_text, text_x, y_offset, 12.0, dark::TEXT_DIM);
+        draw_ui_text(&stats_text, text_x, y_offset, 12.0, dark::TEXT_DIM);
         y_offset += 20.0;
     }
 
     // Instructions
     y_offset += 5.0;
-    draw_text(
+    draw_ui_text(
         "Press 1-0 to spawn units",
         text_x,
         y_offset,
@@ -240,7 +241,7 @@ fn render_commander_panel(game: &GameState, x: f32, y: f32, width: f32) {
     let text_x = x + Config::UI_MARGIN;
 
     // Commander type and ability (Phase 4)
-    draw_text(
+    draw_ui_text(
         &format!("Type: {:?}", commander.commander_type),
         text_x,
         y_offset,
@@ -249,7 +250,7 @@ fn render_commander_panel(game: &GameState, x: f32, y: f32, width: f32) {
     );
     y_offset += 18.0;
 
-    draw_text(
+    draw_ui_text(
         &format!(
             "Ability: {}",
             commander.commander_type.ability_description()
@@ -262,7 +263,7 @@ fn render_commander_panel(game: &GameState, x: f32, y: f32, width: f32) {
     y_offset += 25.0;
 
     // Supply info
-    draw_text(
+    draw_ui_text(
         &format!("Supply: {}/{}", commander.supply_used, commander.supply_max),
         text_x,
         y_offset,
@@ -303,7 +304,7 @@ fn render_commander_panel(game: &GameState, x: f32, y: f32, width: f32) {
             Config::SPAWN_COOLDOWN - local_commander.spawn_timer
         )
     };
-    draw_text(
+    draw_ui_text(
         &cooldown_text,
         text_x,
         y_offset,
@@ -333,7 +334,7 @@ fn render_commander_panel(game: &GameState, x: f32, y: f32, width: f32) {
     y_offset += 30.0;
 
     // Active doctrines
-    draw_text(
+    draw_ui_text(
         "Doctrines:",
         text_x,
         y_offset,
@@ -347,7 +348,7 @@ fn render_commander_panel(game: &GameState, x: f32, y: f32, width: f32) {
             Some(d) => format!("{}: {:?}", i + 1, d),
             None => format!("{}: None", i + 1),
         };
-        draw_text(
+        draw_ui_text(
             &text,
             text_x,
             y_offset,
@@ -369,7 +370,7 @@ fn render_commander_panel(game: &GameState, x: f32, y: f32, width: f32) {
             dark::TEXT_DIM
         };
 
-        draw_text(
+        draw_ui_text(
             &interaction,
             text_x,
             y_offset,
@@ -385,7 +386,7 @@ fn render_victory_panel(game: &GameState, x: f32, y: f32) {
     let text_x = x + Config::UI_MARGIN;
     let mut y_offset = y + 40.0;
 
-    draw_text(
+    draw_ui_text(
         &format!(
             "Holding sectors: {:.1}s / {:.0}s",
             game.victory_timer,
@@ -454,8 +455,8 @@ fn render_game_over(game: &GameState) {
 
     // Winner announcement
     let text_size = 40.0;
-    let text_dims = measure_text(winner_text, None, text_size as u16, 1.0);
-    draw_text(
+    let text_dims = measure_ui_text(winner_text, None, text_size as u16, 1.0);
+    draw_ui_text(
         winner_text,
         text_x - text_dims.width / 2.0,
         y_offset,
@@ -466,7 +467,7 @@ fn render_game_over(game: &GameState) {
 
     // Game stats (Phase 4)
     let stats_x = x + 30.0;
-    draw_text("Final Statistics:", stats_x, y_offset, 18.0, dark::TEXT);
+    draw_ui_text("Final Statistics:", stats_x, y_offset, 18.0, dark::TEXT);
     y_offset += 30.0;
 
     // Display stats for all factions
@@ -496,7 +497,7 @@ fn render_game_over(game: &GameState) {
             .filter(|s| s.control == Some(faction_id))
             .count();
 
-        draw_text(
+        draw_ui_text(
             &format!("{} Faction:", name),
             stats_x,
             y_offset,
@@ -505,7 +506,7 @@ fn render_game_over(game: &GameState) {
         );
         y_offset += 20.0;
 
-        draw_text(
+        draw_ui_text(
             &format!(
                 "  Units Spawned: {}  Lost: {}  Sectors: {}",
                 game.units_spawned[idx], game.units_lost[idx], sectors_held
@@ -523,7 +524,7 @@ fn render_game_over(game: &GameState) {
     // Game duration
     let minutes = (game.game_time / 60.0) as u32;
     let seconds = (game.game_time % 60.0) as u32;
-    draw_text(
+    draw_ui_text(
         &format!("Game Duration: {}:{:02}", minutes, seconds),
         stats_x,
         y_offset,
@@ -534,8 +535,8 @@ fn render_game_over(game: &GameState) {
 
     // Exit prompt
     let subtitle = "Press ESC to exit";
-    let subtitle_dims = measure_text(subtitle, None, Config::UI_FONT_SIZE as u16, 1.0);
-    draw_text(
+    let subtitle_dims = measure_ui_text(subtitle, None, Config::UI_FONT_SIZE as u16, 1.0);
+    draw_ui_text(
         subtitle,
         text_x - subtitle_dims.width / 2.0,
         y_offset,
@@ -567,7 +568,7 @@ pub fn render_controls_help() {
     ];
 
     for control in &controls {
-        draw_text(control, text_x, y_offset, font_size, dark::TEXT_DIM);
+        draw_ui_text(control, text_x, y_offset, font_size, dark::TEXT_DIM);
         y_offset += 22.0;
     }
 }
@@ -578,12 +579,12 @@ pub fn render_game_status(game: &GameState) {
 
     // Pause indicator
     if game.paused {
-        draw_text("PAUSED", x, y, 32.0, Color::from_rgba(255, 200, 100, 200));
+        draw_ui_text("PAUSED", x, y, 32.0, Color::from_rgba(255, 200, 100, 200));
     }
 
     // Speed indicator
     if game.game_speed != 1.0 {
         let speed_text = format!("Speed: {:.1}x", game.game_speed);
-        draw_text(&speed_text, x, y + 35.0, 20.0, dark::TEXT);
+        draw_ui_text(&speed_text, x, y + 35.0, 20.0, dark::TEXT);
     }
 }

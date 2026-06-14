@@ -3,6 +3,7 @@
 use crate::types::*;
 use macroquad::prelude::*;
 use macroquad_toolkit::colors::dark;
+use macroquad_toolkit::ui::{draw_ui_text, measure_ui_text};
 
 pub fn render_markers(markers: &[StrategicMarker], sectors: &[Sector]) {
     for marker in markers {
@@ -99,7 +100,7 @@ pub fn render_sector(sector: &Sector) {
     if sector.sector_type != SectorType::Standard {
         let icon = sector.sector_type.icon();
         let font_size = 20.0;
-        let text_size = measure_text(icon, None, font_size as u16, 1.0);
+        let text_size = measure_ui_text(icon, None, font_size as u16, 1.0);
 
         // Background circle for better readability
         draw_circle(
@@ -110,7 +111,7 @@ pub fn render_sector(sector: &Sector) {
         );
 
         // Draw icon
-        draw_text(
+        draw_ui_text(
             icon,
             sector.position.x - text_size.width / 2.0,
             sector.position.y + text_size.height / 3.0,
@@ -154,7 +155,7 @@ pub fn render_squad(squad: &Squad) {
         if total_supply > 0 {
             let supply_text = format!("{}", total_supply);
             let font_size = 14.0;
-            let text_size = measure_text(&supply_text, None, font_size as u16, 1.0);
+            let text_size = measure_ui_text(&supply_text, None, font_size as u16, 1.0);
 
             // Background for readability
             draw_rectangle(
@@ -166,7 +167,7 @@ pub fn render_squad(squad: &Squad) {
             );
 
             // Supply cost number
-            draw_text(
+            draw_ui_text(
                 &supply_text,
                 center.x - text_size.width / 2.0,
                 center.y + 15.0 + text_size.height,
@@ -290,10 +291,10 @@ pub fn render_combat_effects(effects: &[crate::types::CombatEffect]) {
                 // Draw damage number
                 let damage_text = format!("{:.0}", effect.damage);
                 let font_size = 16.0;
-                let text_size = measure_text(&damage_text, None, font_size as u16, 1.0);
+                let text_size = measure_ui_text(&damage_text, None, font_size as u16, 1.0);
                 let y_offset = (1.0 - effect.time_remaining) * 20.0;
 
-                draw_text(
+                draw_ui_text(
                     &damage_text,
                     effect.position.x - text_size.width / 2.0,
                     effect.position.y - y_offset,
