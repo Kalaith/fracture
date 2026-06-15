@@ -43,3 +43,10 @@ Race design docs:
 - [The Inheritors](docs/races/inheritors.md)
 
 The matching design data lives in `assets/data/rts_races/`, with separate `units.json`, `buildings.json`, and `tech.json` files for each race.
+# Practical Future Improvements
+
+- Add a deterministic RTS command bus with snapshot replay so unit orders, construction, and resource gathering can be reproduced exactly.
+- Validate race data files for units, buildings, and tech before match start so incomplete RTS conversion data fails during publish.
+- Split autonomous-force simulation from battlefield rendering to make doctrine, logistics, and front-pressure behavior testable.
+- Add scenario maps for each faction matchup to exercise worker flow, tech unlocks, and fortification pressure.
+
