@@ -4,7 +4,7 @@ use fracture_command::rts::{
 };
 use macroquad::prelude::{vec2, Vec2};
 
-const CRASH_BASIN_JSON: &str = include_str!("../assets/data/rts_maps/crash_basin_skirmish.json");
+const CRASH_BASIN_JSON: &str = macroquad_toolkit::include_json_str!("../assets/data/rts_maps/crash_basin_skirmish.json");
 const TEST_DT: f32 = 0.25;
 
 fn crash_basin_state() -> RtsGameState {

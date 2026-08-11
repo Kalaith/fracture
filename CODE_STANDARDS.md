@@ -25,7 +25,7 @@ Code should be easy to debug and extend.
 If a pattern already exists in the codebase, follow it even if you dislike it. A consistent codebase is more valuable than a perfect one.
 
 ### 1.3 Data-Driven Design
-All game constants, balance values, and static data should be defined in JSON files under `assets/`. Load this data at startup using Serde for easy balancing and iteration without recompiling code. Avoid hardcoding values in Rust code; reference loaded data structures instead.
+All game constants, balance values, and static data should be defined in JSON files under `assets/`. Load this data through `macroquad_toolkit::data_loader` using Serde-backed project schemas. The toolkit owns generic parsing, embedded/runtime file loading, platform differences, source-labeled diagnostics, and fallback behavior; project code owns only its data types and game-specific validation. Do not create project-local generic JSON loader wrappers or call `serde_json::from_str` directly for game-data files. Avoid hardcoding values in Rust code; reference loaded data structures instead.
 
 ### 1.4 No Unused Code
 - Remove unused variables, fields, and functions immediately
@@ -73,8 +73,9 @@ Each module/subdirectory owns a single conceptual domain:
 ### 2.2 File Size Guideline
 - Target: 200–400 lines per file
 - Soft limit: 600 lines
-- Hard limit: 800 lines for every `.rs` file
+- Hard limit: 800 total lines for every `.rs` file, with no exceptions
 - If a file grows beyond this, split by responsibility.
+- Count every physical line, including tests, comments, attributes, and whitespace. The hard limit applies equally to implementation files, test files, generated Rust source, examples, build scripts, and benches.
 
 ### 2.3 Module Source Filenames
 - Use Rust's named module source filenames: `foo.rs` for `mod foo;`, and `foo/bar.rs` for `mod bar;` inside `foo.rs`.
@@ -178,6 +179,8 @@ Game data should be:
 - All game balance and configuration in JSON under `assets/`
 - Load data at application startup; data is embedded at compile time
 - Use structs that mirror JSON structure for type safety
+- Use `macroquad_toolkit::include_json!` for embedded JSON or the typed functions in `macroquad_toolkit::data_loader` for runtime/native loading. Keep platform branching and generic parse/error handling out of projects.
+- Keep semantic validation project-local after deserialization: IDs, references, balance invariants, and game rules belong to the game rather than the loader.
 - Never hardcode magic numbers; reference loaded config data
 
 ### 5.4 Enums for Game Phases
@@ -346,6 +349,31 @@ Focus tests on:
 - Avoid complex setups  
 - If a test is hard to write, the code is probably too tangled.
 
-## 12. Final Rule
+### 11.3 Test Placement
+Unit tests live in the crate, next to the code they cover, but always in a separate child file. Never embed a test module body in an implementation file.
+
+Declare a child module from the implementation file and place its body in the corresponding child source:
+
+**When a test module dominates its file, extract it to a child module** — not to `tests/`:
+
+```rust
+// src/simulation.rs
+#[cfg(test)]
+mod tests;          // -> src/simulation/tests.rs
+```
+
+This keeps `use super::*` and same-crate access while separating tests from implementation. It follows the named-module rule in §2.3, so use `foo/tests.rs`, never `foo/tests/mod.rs`.
+
+**Do not use a crate-root `tests/` directory for unit tests.** Files there are integration tests: each compiles and links as a separate crate and can only reach the crate's public API. Reserve that directory for genuine integration or end-to-end tests.
+
+Every test source file must remain at or below 800 total lines. Split a larger suite into focused child modules; there are no test-file exceptions to §2.2.
+
+## 12. Verification Artifacts
+
+- Store verification screenshots directly in `docs/verification/`.
+- Do not create screenshot subfolders under `docs/verification/`.
+- If a new capture represents the same screen or state as an existing screenshot, replace the existing image instead of keeping duplicates.
+
+## 13. Final Rule
 
 If a piece of code feels fragile, confusing, or brittle, it probably is. Refactor early. Leave the code calmer than you found it.

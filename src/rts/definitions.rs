@@ -164,16 +164,14 @@ const HEARTWOOD_PRODUCES: &[UnitKind] = &[UnitKind::SpriteGatherer];
 const COMMAND_ARK_PRODUCES: &[UnitKind] = &[UnitKind::FieldEngineer];
 const GROVE_CIRCLE_PRODUCES: &[UnitKind] = &[UnitKind::ElvenWarden];
 const FABRICATOR_BAY_PRODUCES: &[UnitKind] = &[UnitKind::RangerTrooper];
-const STARFALL_SANCTUM_PRODUCES: &[UnitKind] =
-    &[UnitKind::GroveSentinel, UnitKind::WizardAdept];
+const STARFALL_SANCTUM_PRODUCES: &[UnitKind] = &[UnitKind::GroveSentinel, UnitKind::WizardAdept];
 const MECH_FOUNDRY_PRODUCES: &[UnitKind] = &[UnitKind::AegisWalker];
 
 const GROVE_CIRCLE_RESEARCHES: &[TechKind] = &[TechKind::LivingBark];
 const FABRICATOR_BAY_RESEARCHES: &[TechKind] = &[TechKind::StabilizedBarrels];
 const ELDER_SANCTUM_RESEARCHES: &[TechKind] =
     &[TechKind::RootguardPact, TechKind::AstralChanneling];
-const TACTICAL_LAB_RESEARCHES: &[TechKind] =
-    &[TechKind::AegisFrame, TechKind::StabilizedBarrels];
+const TACTICAL_LAB_RESEARCHES: &[TechKind] = &[TechKind::AegisFrame, TechKind::StabilizedBarrels];
 
 const LIVING_BARK_BONUSES: &[TechStatBonus] = &[TechStatBonus {
     unit_kind: UnitKind::ElvenWarden,
@@ -210,8 +208,7 @@ const AEGIS_FRAME_BONUSES: &[TechStatBonus] = &[TechStatBonus {
     armor: 0,
 }];
 
-const AETHERBORN_ADVANCED_UNITS: &[UnitKind] =
-    &[UnitKind::GroveSentinel, UnitKind::WizardAdept];
+const AETHERBORN_ADVANCED_UNITS: &[UnitKind] = &[UnitKind::GroveSentinel, UnitKind::WizardAdept];
 const TERRAN_ADVANCED_UNITS: &[UnitKind] = &[UnitKind::AegisWalker];
 
 const AETHERBORN_TECH_PLAN: &[TechKind] = &[

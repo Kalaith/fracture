@@ -1,7 +1,7 @@
 use super::map::{RtsMapArea, RtsMapBlocker, RtsMapExpansionMarker};
 use super::{
-    BuildingKind, RaceId, TechKind, UnitKind, STARTING_AETHER, STARTING_MATTER, STARTING_WORKERS,
-    PLAYER_ONE, PLAYER_TWO,
+    BuildingKind, RaceId, TechKind, UnitKind, PLAYER_ONE, PLAYER_TWO, STARTING_AETHER,
+    STARTING_MATTER, STARTING_WORKERS,
 };
 use macroquad::prelude::{vec2, Vec2};
 use std::collections::VecDeque;
@@ -378,7 +378,10 @@ impl RtsGameState {
         }
 
         if !self.buildable_areas.is_empty()
-            && !self.buildable_areas.iter().any(|area| area.contains(position))
+            && !self
+                .buildable_areas
+                .iter()
+                .any(|area| area.contains(position))
         {
             return false;
         }
@@ -576,10 +579,7 @@ impl RtsGameState {
             .find(|building| building.id == building_id)
     }
 
-    pub(super) fn building_mut(
-        &mut self,
-        building_id: EntityId,
-    ) -> Option<&mut BuildingInstance> {
+    pub(super) fn building_mut(&mut self, building_id: EntityId) -> Option<&mut BuildingInstance> {
         self.buildings
             .iter_mut()
             .find(|building| building.id == building_id)

@@ -1,10 +1,10 @@
 use fracture_command::rts::{
-    BuildingKind, RaceId, ResourceNodeKind, RtsGameState, RtsError, RtsMapDefinition, UnitKind,
+    BuildingKind, RaceId, ResourceNodeKind, RtsError, RtsGameState, RtsMapDefinition, UnitKind,
     PLAYER_ONE, PLAYER_TWO,
 };
 use macroquad::prelude::vec2;
 
-const CRASH_BASIN_JSON: &str = include_str!("../assets/data/rts_maps/crash_basin_skirmish.json");
+const CRASH_BASIN_JSON: &str = macroquad_toolkit::include_json_str!("../assets/data/rts_maps/crash_basin_skirmish.json");
 
 fn unit_count(state: &RtsGameState, player_id: usize, unit_kind: UnitKind) -> usize {
     state
@@ -92,7 +92,10 @@ fn map_metadata_controls_building_and_move_targets() {
     let passable = state.nearest_passable_position(blocked);
 
     assert!(passable.distance(blocked) >= central_blocker.radius);
-    assert_eq!(vec2(0.0, 0.0), state.nearest_passable_position(vec2(-40.0, -50.0)));
+    assert_eq!(
+        vec2(0.0, 0.0),
+        state.nearest_passable_position(vec2(-40.0, -50.0))
+    );
 }
 
 #[test]

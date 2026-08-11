@@ -201,11 +201,9 @@ impl BasicSkirmishAi {
         }
 
         if !has_ritual_node {
-            let Some(shrine) = first_owned_building(
-                state,
-                self.player_id,
-                catalog.ley_claim_building,
-            ) else {
+            let Some(shrine) =
+                first_owned_building(state, self.player_id, catalog.ley_claim_building)
+            else {
                 return;
             };
             let Some(base_position) = main_base_position(state, self.player_id) else {
@@ -456,7 +454,11 @@ fn nearest_unclaimed_ley_node(state: &RtsGameState, player_id: usize) -> Option<
     let expansion_positions: Vec<Vec2> = state
         .expansion_markers
         .iter()
-        .filter(|marker| marker.recommended_for.map_or(true, |recommended| recommended == race))
+        .filter(|marker| {
+            marker
+                .recommended_for
+                .map_or(true, |recommended| recommended == race)
+        })
         .map(|marker| marker.position.as_vec2())
         .collect();
 
@@ -471,12 +473,9 @@ fn nearest_unclaimed_ley_node(state: &RtsGameState, player_id: usize) -> Option<
                 .all(|building| building.claimed_node != Some(node.id))
         })
         .min_by(|left, right| {
-            ley_node_expansion_score(left.position, base_position, &expansion_positions)
-                .total_cmp(&ley_node_expansion_score(
-                    right.position,
-                    base_position,
-                    &expansion_positions,
-                ))
+            ley_node_expansion_score(left.position, base_position, &expansion_positions).total_cmp(
+                &ley_node_expansion_score(right.position, base_position, &expansion_positions),
+            )
         })
         .map(|node| node.id)
 }
@@ -490,14 +489,14 @@ fn preferred_build_position(state: &RtsGameState, player_id: usize, desired: Vec
     state
         .expansion_markers
         .iter()
-        .filter(|marker| marker.recommended_for.map_or(true, |recommended| recommended == race))
+        .filter(|marker| {
+            marker
+                .recommended_for
+                .map_or(true, |recommended| recommended == race)
+        })
         .map(|marker| marker.position.as_vec2())
         .filter(|position| state.can_place_standard_building(*position))
-        .min_by(|left, right| {
-            desired
-                .distance(*left)
-                .total_cmp(&desired.distance(*right))
-        })
+        .min_by(|left, right| desired.distance(*left).total_cmp(&desired.distance(*right)))
         .unwrap_or(desired)
 }
 

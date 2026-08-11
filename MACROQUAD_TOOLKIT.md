@@ -7,11 +7,27 @@ A collection of common utilities for Macroquad game development, extracted from 
 - **Input utilities**: Mouse hovering, clicking, rectangle collision detection
 - **UI rendering**: Buttons (with press/release variants), panels, progress bars
 - **Asset management**: Texture loading and caching
+- **JSON game data**: Typed embedded/runtime loading, labeled diagnostics, native/WASM handling, and fallback paths
 - **Camera2D**: Pan and zoom for 2D games
 - **Event bus**: Generic event system for decoupled game logic
 - **Color palettes**: Consistent dark theme colors
 - **Sprite system**: Builder pattern for texture rendering with transformations
 - **Screenshot capture**: Env-var-driven headless capture harness for visual verification
+- **Color helpers**: `with_alpha`, `lighten`/`darken`, `mix`, HSV conversion, hue shift
+- **Math**: lerp/smoothstep/approach, easing curves, time-based pulse, square-wave `blink`, `Tween`
+- **Timing**: `Cooldown`, `Timer`, `IntervalTimer`, `Timeline` phase sequencer
+- **FX**: trauma screen shake, screen fades, pooled particles, floating text, terminal typewriter (single string + `reveal_block` for multi-line streams)
+- **Form widgets**: toggle, checkbox, slider, stepper, segmented bar, keycap
+- **Scroll & tabs**: `ScrollArea` with drawn scrollbar, tab bars / nav columns
+- **Settings**: shared `GameSettings` (volume groups, fullscreen, UI scale) with persistence
+- **Achievements**: unlock registry that serializes into saves
+- **Debug overlay**: toggleable smoothed FPS/frame-time panel
+- **Raster**: CPU pixel drawing onto `Image` (primitives, Bresenham, seeded noise)
+- **Sprite variation**: seeded HSV-region recolor with per-(id, seed) texture cache
+- **Projectiles**: `ProjectileLayer` travel-lerp visuals delivering payloads on arrival
+- **Hover tooltip**: delayed, fading tooltip state (`HoverTooltip`)
+- **Plaques**: ornamented title/menu buttons with corner marks and style hooks
+- **Menu cursor**: wrap-around keyboard selection for pause/settings menus
 
 ## Usage
 
@@ -48,6 +64,25 @@ async fn main() {
 
 ## Modules
 
+### JSON game data (`data_loader` module)
+
+Keep schemas and semantic validation in the game, but route all generic JSON parsing and loading through the toolkit:
+
+```rust
+#[derive(serde::Deserialize)]
+struct GameConfig {
+    starting_gold: u32,
+}
+
+let embedded: GameConfig =
+    macroquad_toolkit::include_json!("../assets/data/game_config.json")?;
+
+let runtime: GameConfig =
+    macroquad_toolkit::data_loader::load_json_file("assets/data/game_config.json").await?;
+```
+
+Use `parse_json_labeled` when JSON already arrived as a string. Do not create project-local generic wrappers around `serde_json`; the toolkit provides consistent source names, line/column diagnostics, native/WASM loading, and embedded fallback support.
+
 ### Input (`input` module)
 
 ```rust
@@ -73,6 +108,12 @@ let input = InputState::capture();
 if input.left_click {
     // ...
 }
+
+// Keyboard-driven menus: wrap-around cursor + standard key readers
+let mut cursor = MenuCursor::new(options.len());   // keep in state
+cursor.navigate(menu_nav_vertical());              // Up/W, Down/S
+volume += menu_nav_horizontal() as f32 * 0.1;      // Left/A, Right/D
+if input.enter_pressed { activate(options[cursor.index()]); }
 ```
 
 ### UI (`ui` module)
@@ -118,6 +159,18 @@ if let Some(tex) = assets.get_texture("player") {
     draw_texture(tex, x, y, WHITE);
 }
 ```
+
+**JPEG is supported.** Macroquad itself compiles `image` with only the `png` and `tga`
+decoders, so `macroquad::load_texture` fails on `.jpg`. The toolkit adds a JPEG decoder and
+routes every load path (`load_texture`, `load_texture_filtered`, `AssetPack::texture`,
+`load_texture_from_pack_or_file`) through `assets::decode_texture_bytes`, which detects JPEG by
+magic bytes and falls back to Macroquad for everything else. Loose files are detected by
+`.jpg`/`.jpeg` extension.
+
+Prefer JPEG for large opaque art — photographic/painterly backgrounds and maps compress
+10x better than lossless PNG, and PNG-in-ZIP saves nothing because the data is already
+deflate-incompressible. **JPEG has no alpha channel**, so keep anything with transparency
+(sprites, UI chrome, icons) as PNG. Verify with an alpha-channel audit before bulk-converting.
 
 ### Camera (`camera` module)
 
@@ -172,6 +225,220 @@ Available colors:
 - `ACCENT`, `POSITIVE`, `WARNING`, `NEGATIVE`
 - `HOVERED`
 
+Color manipulation helpers — do **not** hand-roll `Color::new(c.r, c.g, c.b, a)`
+or per-channel brighten/darken/mix in game code:
+
+```rust
+use macroquad_toolkit::colors::{with_alpha, multiply_alpha, lighten, darken, shade, tint,
+                                mix, shift_hue};
+
+let faded = with_alpha(dark::ACCENT, 0.4);      // replace alpha
+let ghost = multiply_alpha(translucent, 0.5);   // scale existing alpha
+let hover = lighten(base, 0.1);                 // additive per-channel
+let dim = darken(base, 0.15);
+let shadowed = shade(base, 0.3);                // blend toward black (multiplicative)
+let pale = tint(base, 0.3);                     // blend toward white
+let blend = mix(a, b, t);                       // component lerp (alias: lerp_color)
+let variant = shift_hue(base, 40.0);            // HSV hue rotation
+```
+
+### Math (`math` module)
+
+Interpolation and easing primitives — use these instead of private `lerp`/`ease_*` copies:
+
+```rust
+use macroquad_toolkit::math::{lerp, inv_lerp, remap, smoothstep, approach, exp_approach,
+                              ease_out_cubic, ease_out_back, pulse01, pulse_range, bob,
+                              blink, hash_str, Tween};
+
+let x = lerp(a, b, t);
+let glow = pulse_range(3.0, 0.55, 0.77);   // replaces (get_time()*k).sin() idioms
+let caret = if blink(elapsed, 2.5) { "_" } else { "" }; // square-wave cursor blink
+let mut slide = Tween::new(0.0, 8.0);      // exponential ease-toward-target
+slide.set_target(panel_x);
+slide.update(dt);
+let seed = hash_str(&entity_id);           // FNV-1a, stable procedural seeds
+```
+
+### Timing (`timing` module)
+
+Replaces bare `f32` cooldown fields, `accum` tickers, and hand-stepped phase machines:
+
+```rust
+use macroquad_toolkit::timing::{Cooldown, Timer, IntervalTimer, Timeline};
+
+let mut fire = Cooldown::new(0.5);
+if wants_fire && fire.try_trigger() { /* shoot */ }
+fire.tick(dt);
+
+let mut flash = Timer::new(0.3);            // one-shot with 0..1 progress
+let mut spawner = IntervalTimer::new(2.0);  // fires N times per update
+for _ in 0..spawner.tick(dt) { /* spawn */ }
+
+let mut swing = Timeline::new(vec![(Phase::WindUp, 0.2), (Phase::Strike, 0.1)]);
+swing.advance(dt);
+if let Some((phase, progress)) = swing.current() { /* animate */ }
+```
+
+### FX (`fx` module)
+
+```rust
+use macroquad_toolkit::fx::{ScreenShake, ScreenFade, ParticleSystem, BurstConfig, FloatingTextLayer};
+
+let mut shake = ScreenShake::new(12.0);     // trauma model: offset ~ trauma^2
+shake.add_trauma(0.4);
+shake.update(dt);
+let cam_offset = shake.offset();
+
+let mut fade = ScreenFade::new(0.4);        // scene transitions
+fade.fade_out();
+if fade.update(dt) { /* swap scene, then fade.fade_in() */ }
+fade.draw();
+
+let mut particles = ParticleSystem::new();  // capped pool
+particles.spawn_burst(hit_pos, 12, &BurstConfig::default());
+particles.update(dt);
+particles.draw();
+
+let mut floaters = FloatingTextLayer::new(); // damage numbers / gains
+floaters.spawn("+5", world_pos, GOLD);
+floaters.update(dt);
+floaters.draw();                             // inside camera for world anchor
+```
+
+Attack visuals that lerp toward a target and resolve a hit on arrival use
+`ProjectileLayer<T>` — the payload is whatever your game needs to apply the
+impact (serde round-trips for saves):
+
+```rust
+use macroquad_toolkit::fx::{ProjectileLayer, TravelingProjectile};
+
+let mut projectiles: ProjectileLayer<Impact> = ProjectileLayer::new();
+projectiles.spawn(attacker_pos, target_pos, 0.3, Impact { defender, damage });
+projectiles.push(                                     // melee slash: stays near attacker
+    TravelingProjectile::new(a, b, 0.15, impact).with_travel_ratio(0.3),
+);
+for impact in projectiles.update(dt) { apply_damage(impact); }
+for p in projectiles.iter() { draw_at(p.position(), p.progress()); }
+```
+
+Terminal-style character reveal — given the full text, seconds elapsed, and a
+chars-per-second rate, these return how much should be visible (a non-positive
+rate reveals everything, handy for capture/accessibility). Counting is by
+`char`, so multi-byte UTF-8 never splits:
+
+```rust
+use macroquad_toolkit::fx::{typed_prefix, is_fully_typed, prefix_chars, reveal_block};
+
+let shown = typed_prefix(line, elapsed, 40.0);          // one string
+if !is_fully_typed(line, elapsed, 40.0) { /* draw caret */ }
+
+// A whole block streamed as one shared budget (boot log, console output):
+// line N only starts once lines 0..N are fully shown.
+let r = reveal_block(&lines, elapsed, 170.0);
+for (i, line) in lines.iter().enumerate() {
+    draw(prefix_chars(line, r.shown[i]));               // visible prefix per line
+}
+// Park a blinking caret at the write head (or final glyph once complete):
+if i == r.cursor_line && blink(elapsed, 3.0) { draw_caret(); }
+```
+
+### Form widgets, scroll, and tabs (`ui` module)
+
+```rust
+use macroquad_toolkit::ui::{toggle_row, checkbox, slider_row, stepper_row,
+                            segmented_bar, keycap_hint, ScrollArea, tab_bar, nav_column};
+
+toggle_row(row, "Screen shake", &mut settings.screen_shake);
+slider_row(row2, "Music", &mut settings.music_volume, 0.0, 1.0);
+match stepper_row(row3, "UI scale", &format!("{:.0}%", scale * 100.0)) {
+    d if d != 0 => { /* apply step */ }
+    _ => {}
+}
+
+let mut scroll = ScrollArea::new();          // keep in state
+scroll.update(list_rect, content_height);
+// draw rows offset by -scroll.offset(), then:
+scroll.draw_scrollbar(list_rect, content_height);
+
+if let Some(clicked) = tab_bar(bar_rect, &["Stats", "Gear", "Log"], active_tab) {
+    active_tab = clicked;
+}
+```
+
+### Hover tooltips and menu plaques (`ui` module)
+
+`HoverTooltip` adds a show delay and fade-in/out on top of the stateless
+`draw_tooltip`: widgets report hover during drawing, and the owner draws once
+at the end of the frame so the tooltip renders above everything.
+
+```rust
+use macroquad_toolkit::ui::{HoverTooltip, TooltipStyle};
+
+let mut tooltip = HoverTooltip::new();          // keep in UI state
+// While drawing each widget:
+tooltip.hover_rect("forge-btn", "Forge a new blade", btn_rect, mouse, get_time());
+// End of frame (applies fade alpha to the style):
+tooltip.draw(&TooltipStyle::default(), None, get_time());
+```
+
+Plaques are the ornamented title/pause-menu buttons (drop shadow, framed
+face, corner tick marks). `PlaqueStyle` exposes hooks for the parts games
+differ on — bevel band, inner borders, top highlight, mark placement — and
+`PlaquePalette` maps interaction state to face colors, one palette per tone:
+
+```rust
+use macroquad_toolkit::ui::{plaque_button, plaque_button_ex, draw_plaque,
+                            draw_corner_marks, PlaquePalette, PlaqueStyle};
+
+let style = PlaqueStyle::default();             // build once per screen/tone
+let palette = PlaquePalette::default();
+if plaque_button(rect, "New Game", &style, &palette, enabled, logical_mouse) {
+    // activated (released over the button)
+}
+// Keyboard menus: highlight the MenuCursor's row
+plaque_button_ex(rect, "Resume", &style, &palette, true, cursor.index() == i, mouse);
+draw_corner_marks(panel_rect, gold);            // standalone decorations
+```
+
+### Settings (`settings` module)
+
+```rust
+use macroquad_toolkit::settings::GameSettings;
+
+let mut settings = GameSettings::load("my_game");   // defaults when missing
+settings.apply_display();                            // fullscreen + UI text scale
+sound.play_sfx(Sfx::Hit, settings.effective_sfx_volume());
+settings.save("my_game").ok();
+```
+
+### Achievements (`achievements` module)
+
+```rust
+use macroquad_toolkit::achievements::{Achievement, Achievements};
+
+let mut achievements = Achievements::from_definitions(vec![
+    Achievement::new("first_win", "First Win", "Win a run."),
+]);
+if achievements.unlock("first_win") { notifications.success("Achievement: First Win"); }
+let (done, total) = achievements.progress();
+// Serialize into the save; call sync_definitions(defs) after load.
+```
+
+### Debug overlay (`debug` module)
+
+```rust
+use macroquad_toolkit::debug::DebugOverlay;
+
+let mut overlay = DebugOverlay::new();      // keep in Game
+overlay.record_frame(get_frame_time());     // every frame
+if is_key_pressed(KeyCode::F3) { overlay.toggle(); }
+overlay.draw(&[format!("entities: {}", count)]);
+```
+
+Time formatting lives beside the money formatters in `ui`:
+`format_mmss(secs)`, `format_hmmss(secs)`, `format_clock(hour, minute)`.
+
 ### RNG (`rng` module)
 
 Two layers: convenience wrappers around `macroquad::rand` (WebGL-safe, shared
@@ -216,6 +483,42 @@ let sprite = Sprite::new()
     .colored(RED);
 
 sprite.draw();
+```
+
+Per-entity visual diversity from one image: `SpriteVariationCache` recolors
+hue/saturation regions of a base sprite deterministically per seed and caches
+the resulting textures.
+
+```rust
+use macroquad_toolkit::sprite::{ColorRegion, SpriteVariationCache, SpriteVariationConfig};
+
+let mut variations = SpriteVariationCache::new();   // keep in render state
+variations.register("goblin", SpriteVariationConfig {
+    color_regions: vec![
+        ColorRegion::new("skin", 60.0, 150.0, 0.3, 0.8, 0.8),  // green hues
+        ColorRegion::new("cloth", 0.0, 360.0, 0.3, 1.0, 1.5),
+    ],
+    variation_strength: 0.7,
+});
+let texture = variations.get_or_create("goblin", entity.variation_seed, &base_texture);
+```
+
+### Raster (`raster` module)
+
+CPU-side pixel drawing onto an `Image` for procedural art (sprites,
+portraits, generated textures). Everything clips against the image bounds;
+noise is seeded and deterministic.
+
+```rust
+use macroquad_toolkit::raster::{fill_rect, fill_circle, fill_ellipse,
+                                draw_line_pixels, add_noise, set_pixel_safe};
+
+let mut image = Image::gen_image_color(64, 64, BLANK);
+fill_rect(&mut image, 4, 4, 56, 40, wall_color);
+fill_ellipse(&mut image, 32, 50, 20, 8, shadow_color);
+draw_line_pixels(&mut image, 0, 63, 63, 0, trim_color);   // Bresenham
+add_noise(&mut image, seed, 0.15);                        // grain, stable per seed
+let texture = Texture2D::from_image(&image);
 ```
 
 ### Capture (`capture` module)
@@ -263,8 +566,40 @@ Env vars (replace `MYGAME` with your per-game prefix):
 - `MYGAME_CAPTURE_SCENE` — scene name (default `gameplay`)
 - `MYGAME_CAPTURE_FRAMES` — frames to simulate before capture (default 150)
 - `MYGAME_WINDOW_WIDTH` / `MYGAME_WINDOW_HEIGHT` — window size override
+- `MYGAME_HEADLESS` — hide the game window (default: on while capturing)
 
 All env access is stubbed out on `wasm32`, so web builds are unaffected.
+
+#### Really headless (`capture::headless`)
+
+macroquad has no offscreen mode — miniquad must create a real OS window to own
+the GL context and shows it as soon as that context exists — so a capture used
+to pop a full game window onto the desktop and take focus. `capture::headless`
+takes that window straight back off the desktop (`ShowWindow(SW_HIDE)` on
+Windows; a no-op elsewhere). Rendering is unaffected: the frame still lands in
+the back buffer, which the driver owns whether or not the window is mapped, and
+`get_screen_data()` reads the back buffer *before* the swap.
+
+`capture_window_conf` calls `headless::arm(prefix)` for you, so a game wired the
+standard way needs no change. `window_conf()` is the earliest hook a game has,
+and `arm` leaves a watcher behind that hides the window the moment miniquad
+shows it — so there is no visible flash while the game loads. A game that
+builds its `Conf` by hand should call `headless::arm("MYGAME")` there itself:
+
+```rust
+fn window_conf() -> Conf {
+    capture::headless::arm("MYGAME");
+    Conf { /* hand-built */ }
+}
+```
+
+`MYGAME_HEADLESS` defaults to whether capture mode is active, and overrides it
+either way:
+
+- `MYGAME_HEADLESS=0` during a capture — show the window, to watch a scene that
+  is coming out wrong (`capture_ui.ps1 -Visible` sets this)
+- `MYGAME_HEADLESS=1` outside capture mode — hide the window for any other
+  automated run, e.g. a playtest bot driving itself through a headless session
 
 A shared wrapper script (`macroquad-toolkit/scripts/capture_ui.ps1`) builds the
 game, runs one capture per scene, and sanity-checks each PNG. It derives the
@@ -279,6 +614,38 @@ directory it needs no arguments:
 Pass `-Prefix` if the game's env-var prefix differs from its package name
 (e.g. `carriage_run` uses `CARRIAGE`). See `carriage_run` for a reference
 integration, including a thin per-game `scripts/capture_ui.ps1` wrapper.
+
+### Source gate (`source_gate` module)
+
+The 800-line hard limit from `CODE_STANDARDS.md` §2.2 as a test, so plain
+`cargo test` enforces it locally and in CI. It counts non-test lines only:
+inline `#[cfg(test)] mod tests` blocks don't count, and extracted test files
+(`foo/tests.rs`, anything under a `tests/` directory inside `src/`) are exempt.
+Blank lines and comments in non-test code do count.
+
+Every game carries the same one-test integration file:
+
+```rust
+// tests/code_standards.rs
+#[test]
+fn source_files_stay_under_the_limit() {
+    macroquad_toolkit::source_gate::assert_source_files_within_limit(
+        env!("CARGO_MANIFEST_DIR"),
+        &[],
+    );
+}
+```
+
+Files already over the limit when the gate arrives are grandfathered by
+listing their manifest-relative paths (forward slashes) in the second
+argument. Grandfathered entries are ratcheted: when a listed file drops back
+under the limit, the gate fails until the entry is removed, so the list only
+shrinks. The gate also panics — rather than passing clean — if the path it is
+given has no `src/`.
+
+Sibling crates in the same repo can be gated from the one test file by
+passing their directories too, e.g.
+`assert_source_files_within_limit(concat!(env!("CARGO_MANIFEST_DIR"), "/kaiju_server"), &[])`.
 
 ## Button Click Semantics
 
